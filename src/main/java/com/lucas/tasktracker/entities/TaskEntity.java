@@ -3,11 +3,14 @@ package com.lucas.tasktracker.entities;
 import com.lucas.tasktracker.enumerations.PriorityEnum;
 import com.lucas.tasktracker.enumerations.TaskStatusEnum;
 import jakarta.persistence.*;
-import org.springframework.cglib.core.EmitUtils;
-import org.springframework.scheduling.config.Task;
-
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import java.util.Date;
 
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 @Entity
 @Table(name = "tasks")
 public class TaskEntity {
