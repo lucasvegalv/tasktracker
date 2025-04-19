@@ -2,10 +2,14 @@ package com.lucas.tasktracker.dtos;
 
 import com.lucas.tasktracker.entities.ProjectEntity;
 import com.lucas.tasktracker.entities.TaskEntity;
-import jakarta.persistence.*;
-
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import java.util.Set;
 
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class TaskListDTO {
 
     private String name;
