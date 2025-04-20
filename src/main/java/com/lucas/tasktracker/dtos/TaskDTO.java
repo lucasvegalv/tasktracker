@@ -13,6 +13,7 @@ import java.util.Date;
 @NoArgsConstructor
 public class TaskDTO {
 
+    private Long id;
     private String title;
     private String description;
     private Date dueDate;

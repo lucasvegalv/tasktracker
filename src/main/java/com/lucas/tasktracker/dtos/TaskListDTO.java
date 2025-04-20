@@ -12,6 +12,7 @@ import java.util.Set;
 @NoArgsConstructor
 public class TaskListDTO {
 
+    private Long id;
     private String name;
     private String description;
     private Set<TaskEntity> tasks;

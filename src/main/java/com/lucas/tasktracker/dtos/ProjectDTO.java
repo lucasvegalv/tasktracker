@@ -12,8 +12,7 @@ import java.util.Set;
 @NoArgsConstructor
 public class ProjectDTO {
 
+    private Long id;
     private String title;
-    private Set<TaskListEntity> taskLists;
-    private Set<UserEntity> members;
 
 }
