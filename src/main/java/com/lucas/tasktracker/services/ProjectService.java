@@ -2,6 +2,7 @@ package com.lucas.tasktracker.services;
 
 import com.lucas.tasktracker.dtos.AddMemberDTO;
 import com.lucas.tasktracker.dtos.ProjectDTO;
+import com.lucas.tasktracker.dtos.UpdateProjectDTO;
 import com.lucas.tasktracker.dtos.UserDTO;
 import com.lucas.tasktracker.entities.ProjectEntity;
 import com.lucas.tasktracker.entities.UserEntity;
@@ -10,6 +11,7 @@ import com.lucas.tasktracker.mappers.UserMapper;
 import com.lucas.tasktracker.repositories.ProjectRepository;
 import com.lucas.tasktracker.repositories.UserRepository;
 import jakarta.transaction.Transactional;
+import org.hibernate.sql.Update;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -111,7 +113,7 @@ public class ProjectService {
 
 
 
-    //    GET /api/projects: Obtener lista paginada/ordenada de proyectos.
+    // Obtener lista paginada/ordenada de proyectos.
     public List<ProjectDTO> getAllProjects() {
         List<ProjectEntity> projectsEntity = projectRepository.findAll();
         List<ProjectDTO> projectsDTO = projectsEntity.stream()
@@ -122,10 +124,65 @@ public class ProjectService {
     }
 
 
+    // Obtener detalles de un proyecto.
+    public Optional<ProjectDTO> getProjectById(Long projectId) {
+        Optional<ProjectEntity> projectEntityOptional = projectRepository.findById(projectId);
 
-    //    GET /api/projects/{projectId}: Obtener detalles de un proyecto.
-    //    PUT /api/projects/{projectId}: Actualizar un proyecto.
+        if(projectEntityOptional.isPresent()) {
+            ProjectEntity projectEntity = projectEntityOptional.get();
+            ProjectDTO projectDTO = projectMapper.toProjectDTO(projectEntity);
+
+            return Optional.of(projectDTO);
+        }
+
+        return Optional.empty();
+    }
+
+
+    // Actualizar un proyecto.
+    public Optional<ProjectDTO> updateProject(Long projectId, UpdateProjectDTO updateProjectDTO) {
+        Optional<ProjectEntity> projectEntityOptional = projectRepository.findById(projectId);
+
+        if(projectEntityOptional.isPresent()) {
+            ProjectEntity projectEntity = projectEntityOptional.get();
+
+            if(updateProjectDTO.getTitle() != null) {
+                projectEntity.setTitle(updateProjectDTO.getTitle());
+                projectRepository.save(projectEntity);
+
+                ProjectDTO updatedProjectDTO = projectMapper.toProjectDTO(projectEntity);
+
+                return Optional.of(updatedProjectDTO);
+            }
+        }
+        return Optional.empty();
+    }
+
     //    DELETE /api/projects/{projectId}/members/{userId}: Quitar un usuario de un proyecto.
+
+    public Optional<Set<UserDTO>> deleteProjectMember(Long projectId, Long memberId) {
+        Optional<ProjectEntity> projectEntityOptional = projectRepository.findById(projectId);
+        Optional<UserEntity> memberEntityOptional = userRepository.findById(memberId);
+
+        if (projectEntityOptional.isEmpty() || memberEntityOptional.isEmpty()) {
+            return Optional.empty();
+        }
+
+        ProjectEntity projectEntity = projectEntityOptional.get();
+        Set<UserEntity> currentMembers = projectEntity.getMembers();
+
+        UserEntity memberToRemove = memberEntityOptional.get();
+
+        currentMembers.remove(memberToRemove);
+        projectRepository.save(projectEntity);
+
+        Set<UserDTO> updatedMembersDTO = currentMembers.stream()
+                .map(userMapper::toUserDTO)
+                .collect(Collectors.toSet());
+
+        return Optional.of(updatedMembersDTO);
+    }
+
     //    POST /api/projects/{projectId}/tasklists: Crear una nueva lista de tareas dentro de un proyecto.
     //    GET /api/projects/{projectId}/tasklists: Listar las listas de tareas de un proyecto.
 }
