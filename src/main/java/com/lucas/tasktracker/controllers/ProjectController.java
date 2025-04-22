@@ -53,7 +53,7 @@ public class ProjectController {
     // Eliminar un proyecto.
     @DeleteMapping("/{project_id}")
     public ResponseEntity<List<ProjectDTO>> deleteProject(@PathVariable Long project_id) {
-        List<ProjectDTO> projectsDTO = projectService.deleteProject(project_id);
+        List<ProjectDTO> projectsDTO = projectService.deleteProject(project_id).orElse(null);
 
         return ResponseEntity.ok(projectsDTO);
     }

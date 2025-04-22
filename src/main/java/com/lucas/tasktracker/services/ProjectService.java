@@ -11,6 +11,7 @@ import com.lucas.tasktracker.mappers.UserMapper;
 import com.lucas.tasktracker.repositories.ProjectRepository;
 import com.lucas.tasktracker.repositories.UserRepository;
 import jakarta.transaction.Transactional;
+import org.apache.catalina.User;
 import org.hibernate.sql.Update;
 import org.springframework.stereotype.Service;
 
@@ -46,38 +47,22 @@ public class ProjectService {
     }
 
     // Eliminar un proyecto.
-    public List<ProjectDTO> deleteProject(Long projectId) {
+    @Transactional
+    public Optional<List<ProjectDTO>> deleteProject(Long projectId) {
         Optional<ProjectEntity> projectEntityOptional = projectRepository.findById(projectId);
-        List<ProjectDTO> projectsDTOList;
 
-        if(projectEntityOptional.isPresent()) {
-            projectRepository.deleteById(projectId);
+        if(projectEntityOptional.isEmpty()) {
+            return Optional.empty();
         }
+
+        projectRepository.deleteById(projectId);
 
         List<ProjectEntity> projectEntityList = projectRepository.findAll();
-        projectsDTOList = projectEntityList.stream()
+        List<ProjectDTO> projectsDTOList = projectEntityList.stream()
                 .map(projectMapper::toProjectDTO)
-                .collect(Collectors.toList());
+                .toList();
 
-        return projectsDTOList;
-    }
-
-    //  Listar los usuarios miembros de un proyecto.
-    public Optional<Set<UserDTO>> getProjectMembers(Long projectId) {
-        Optional<ProjectEntity> projectEntityOptional = projectRepository.findById(projectId);
-        Set<UserEntity> projectMembersEntityList;
-        Set<UserDTO> projectMembersDTOList;
-
-        if(projectEntityOptional.isPresent()) {
-            projectMembersEntityList = projectEntityOptional.get().getMembers();
-            projectMembersDTOList = projectMembersEntityList.stream()
-                    .map(userMapper::toUserDTO)
-                    .collect(Collectors.toSet());
-
-            return Optional.of(projectMembersDTOList);
-        }
-
-        return Optional.empty();
+        return Optional.of(projectsDTOList);
     }
 
     // Añadir un usuario como miembro a un proyecto.
@@ -160,6 +145,7 @@ public class ProjectService {
 
     //    DELETE /api/projects/{projectId}/members/{userId}: Quitar un usuario de un proyecto.
 
+    @Transactional
     public Optional<Set<UserDTO>> deleteProjectMember(Long projectId, Long memberId) {
         Optional<ProjectEntity> projectEntityOptional = projectRepository.findById(projectId);
         Optional<UserEntity> memberEntityOptional = userRepository.findById(memberId);
@@ -173,14 +159,33 @@ public class ProjectService {
 
         UserEntity memberToRemove = memberEntityOptional.get();
 
+        Set<ProjectEntity> memberProjectList =  memberEntityOptional.get().getProjects();
         currentMembers.remove(memberToRemove);
+        memberProjectList.remove(projectEntity);
+
         projectRepository.save(projectEntity);
 
-        Set<UserDTO> updatedMembersDTO = currentMembers.stream()
+        Set<UserDTO> updatedMembersDTO = projectEntity.getMembers().stream()
                 .map(userMapper::toUserDTO)
                 .collect(Collectors.toSet());
 
         return Optional.of(updatedMembersDTO);
+    }
+
+    //  Listar los usuarios miembros de un proyecto.
+    public Optional<Set<UserDTO>> getProjectMembers(Long projectId) {
+        Optional<ProjectEntity> projectEntityOptional = projectRepository.findById(projectId);
+
+        if(projectEntityOptional.isEmpty()) {
+            return Optional.empty();
+        }
+
+        Set<UserEntity> projectMembersEntityList = projectEntityOptional.get().getMembers();
+        Set<UserDTO> projectMembersDTOList = projectMembersEntityList.stream()
+                .map(userMapper::toUserDTO)
+                .collect(Collectors.toSet());
+
+        return Optional.of(projectMembersDTOList);
     }
 
     //    POST /api/projects/{projectId}/tasklists: Crear una nueva lista de tareas dentro de un proyecto.
