@@ -1,9 +1,9 @@
 package com.lucas.tasktracker.services;
 
-import com.lucas.tasktracker.dtos.*;
+import com.lucas.tasktracker.dtos.requests.AddMemberDTO;
 import com.lucas.tasktracker.dtos.requests.RequestProjectDTO;
-import com.lucas.tasktracker.dtos.requests.RequestUserDTO;
 import com.lucas.tasktracker.dtos.responses.ResponseProjectDTO;
+import com.lucas.tasktracker.dtos.responses.ResponseTaskListDTO;
 import com.lucas.tasktracker.dtos.responses.ResponseUserDTO;
 import com.lucas.tasktracker.entities.ProjectEntity;
 import com.lucas.tasktracker.entities.TaskListEntity;
@@ -15,12 +15,8 @@ import com.lucas.tasktracker.repositories.ProjectRepository;
 import com.lucas.tasktracker.repositories.TaskListRepository;
 import com.lucas.tasktracker.repositories.UserRepository;
 import jakarta.transaction.Transactional;
-import org.apache.catalina.User;
-import org.apache.coyote.Request;
-import org.hibernate.sql.Update;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -226,7 +222,7 @@ public class ProjectService {
 
     // Listar las listas de tareas de un proyecto.
 
-    public Optional<Set<TaskListDTO>> getProjectTaskLists(Long projectId) {
+    public Optional<Set<ResponseTaskListDTO>> getProjectTaskLists(Long projectId) {
 
         Optional<ProjectEntity> projectEntityOptional = projectRepository.findById(projectId);
 
@@ -237,11 +233,11 @@ public class ProjectService {
         ProjectEntity projectEntity = projectEntityOptional.get();
         Set<TaskListEntity> projectTaskListEntity = projectEntity.getTaskLists();
 
-        Set<TaskListDTO> projectTaskListDTO = projectTaskListEntity.stream()
-                .map(taskListMapper::toTaskListDTO)
+        Set<ResponseTaskListDTO> projectResponseTaskListDTO = projectTaskListEntity.stream()
+                .map(taskListMapper::toResponseTaskListDTO)
                 .collect(Collectors.toSet());
 
-        return Optional.of(projectTaskListDTO);
+        return Optional.of(projectResponseTaskListDTO);
     }
 
 }

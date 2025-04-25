@@ -1,8 +1,5 @@
 package com.lucas.tasktracker.entities;
 
-import com.lucas.tasktracker.dtos.TaskDTO;
-import com.lucas.tasktracker.dtos.responses.ResponseUserDTO;
-import com.lucas.tasktracker.mappers.TaskListMapper;
 import jakarta.persistence.*;
 import lombok.*;
 

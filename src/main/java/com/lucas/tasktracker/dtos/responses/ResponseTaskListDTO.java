@@ -1,7 +1,5 @@
-package com.lucas.tasktracker.dtos;
+package com.lucas.tasktracker.dtos.responses;
 
-import com.lucas.tasktracker.entities.ProjectEntity;
-import com.lucas.tasktracker.entities.TaskEntity;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,7 +8,10 @@ import java.util.Set;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class AddTaskListDTO {
+public class ResponseTaskListDTO {
+
+    private Long taskListId;
     private String name;
     private String description;
+    private Set<ResponseTaskDTO> tasks;
 }

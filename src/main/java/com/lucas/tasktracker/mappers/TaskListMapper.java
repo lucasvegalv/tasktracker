@@ -1,11 +1,15 @@
 package com.lucas.tasktracker.mappers;
 
-import com.lucas.tasktracker.dtos.TaskListDTO;
+import com.lucas.tasktracker.dtos.responses.ResponseTaskListDTO;
 import com.lucas.tasktracker.entities.TaskListEntity;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = {TaskMapper.class})
 public interface TaskListMapper {
-    TaskListEntity toTaskListEntity(TaskListDTO taskListDTO);
-    TaskListDTO toTaskListDTO(TaskListEntity taskListEntity);
+    TaskListEntity toTaskListEntity(ResponseTaskListDTO responseTaskListDTO);
+
+    @Mapping(source = "id", target = "taskListId")
+    ResponseTaskListDTO toResponseTaskListDTO(TaskListEntity taskListEntity);
+
 }

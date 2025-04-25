@@ -1,15 +1,13 @@
-package com.lucas.tasktracker.dtos;
+package com.lucas.tasktracker.dtos.requests;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Set;
-
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ResponseTaskListDTO {
-    private int id;
+public class RequestTaskListDTO {
     private String name;
+    private String description;
 }

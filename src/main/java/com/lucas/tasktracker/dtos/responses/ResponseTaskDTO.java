@@ -1,0 +1,23 @@
+package com.lucas.tasktracker.dtos.responses;
+
+import com.lucas.tasktracker.enumerations.PriorityEnum;
+import com.lucas.tasktracker.enumerations.TaskStatusEnum;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import java.util.Date;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class ResponseTaskDTO {
+
+    private Long taskId;
+    private String title;
+    private String description;
+    private Date dueDate;
+    private PriorityEnum priority;
+    private TaskStatusEnum status;
+    private Long taskListId;
+
+}

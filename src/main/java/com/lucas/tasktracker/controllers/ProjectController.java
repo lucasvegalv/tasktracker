@@ -1,18 +1,16 @@
 package com.lucas.tasktracker.controllers;
 
-import com.lucas.tasktracker.dtos.*;
+import com.lucas.tasktracker.dtos.requests.AddMemberDTO;
 import com.lucas.tasktracker.dtos.requests.RequestProjectDTO;
 import com.lucas.tasktracker.dtos.responses.ResponseProjectDTO;
+import com.lucas.tasktracker.dtos.responses.ResponseTaskListDTO;
 import com.lucas.tasktracker.dtos.responses.ResponseUserDTO;
-import com.lucas.tasktracker.entities.ProjectEntity;
 import com.lucas.tasktracker.repositories.ProjectRepository;
 import com.lucas.tasktracker.services.ProjectService;
-import org.apache.catalina.User;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 @RestController
@@ -102,10 +100,10 @@ public class ProjectController {
 
     // Listar las listas de tareas de un proyecto.
     @GetMapping("/api/projects/{projectId}/tasklists")
-    public ResponseEntity<Set<TaskListDTO>> getProjectTaskLists(@PathVariable Long projectId) {
-        Set<TaskListDTO> projectTaskListDTO = projectService.getProjectTaskLists(projectId).orElse(null);
+    public ResponseEntity<Set<ResponseTaskListDTO>> getProjectTaskLists(@PathVariable Long projectId) {
+        Set<ResponseTaskListDTO> projectResponseTaskListDTO = projectService.getProjectTaskLists(projectId).orElse(null);
 
-        return ResponseEntity.ok(projectTaskListDTO);
+        return ResponseEntity.ok(projectResponseTaskListDTO);
     }
 
 

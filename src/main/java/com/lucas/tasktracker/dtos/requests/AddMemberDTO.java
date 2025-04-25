@@ -1,4 +1,4 @@
-package com.lucas.tasktracker.dtos;
+package com.lucas.tasktracker.dtos.requests;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

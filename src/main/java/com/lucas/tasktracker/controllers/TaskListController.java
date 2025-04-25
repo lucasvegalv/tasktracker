@@ -1,13 +1,14 @@
 package com.lucas.tasktracker.controllers;
 
-import com.lucas.tasktracker.dtos.AddTaskListDTO;
-import com.lucas.tasktracker.dtos.TaskListDTO;
-import com.lucas.tasktracker.entities.TaskListEntity;
+import com.lucas.tasktracker.dtos.requests.RequestTaskListDTO;
+import com.lucas.tasktracker.dtos.responses.ResponseTaskListDTO;
+import com.lucas.tasktracker.dtos.responses.ResponseUserDTO;
 import com.lucas.tasktracker.services.TaskListService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Set;
 
 
 @RestController
@@ -20,11 +21,47 @@ public class TaskListController {
         this.taskListService = taskListService;
     }
 
-    @PostMapping
-    public ResponseEntity<TaskListDTO> createTaskList(AddTaskListDTO addTaskListDTO) {
-        TaskListDTO taskListDTO = taskListService.createTaskList(addTaskListDTO).orElse(null);
+//    GET /api/tasklists: Obtener todas las listas de tareas.
+    @GetMapping
+    public ResponseEntity<List<ResponseTaskListDTO>> getAllTaskLists() {
+        List<ResponseTaskListDTO> responseTaskListDTOS = taskListService.getAllTaskLists().orElse(null);
 
-        return ResponseEntity.ok(taskListDTO);
+        return ResponseEntity.ok(responseTaskListDTOS);
+    }
+
+
+//    GET /api/tasklists/{taskListId}: Obtener detalles de una lista de tareas específica.
+    @GetMapping("/{tasklistId}")
+    public ResponseEntity<ResponseTaskListDTO> getTaskListById(@PathVariable Long tasklistId) {
+        ResponseTaskListDTO responseTaskListDTO = taskListService.getTaskListById(tasklistId).orElse(null);
+
+        return ResponseEntity.ok(responseTaskListDTO);
+    }
+
+
+//    DELETE /api/tasklists/{taskListId}: Eliminar una lista de tareas.
+    @DeleteMapping("/{taskListId}")
+    public ResponseEntity<Set<ResponseTaskListDTO>> deleteTaskListById(@PathVariable Long tasklistId) {
+        Set<ResponseTaskListDTO> responseTaskListDTOS = taskListService.deleteTaskListById(tasklistId).orElse(null);
+
+        return ResponseEntity.ok(responseTaskListDTOS);
+    }
+
+//    POST /api/tasklists: Crear una lista de tareas sin proyecto asignado
+    @PostMapping
+    public ResponseEntity<ResponseTaskListDTO> createTaskList(RequestTaskListDTO requestTaskListDTO) {
+        ResponseTaskListDTO responseTaskListDTO = taskListService.createTaskList(requestTaskListDTO).orElse(null);
+
+        return ResponseEntity.ok(responseTaskListDTO);
+    }
+
+
+//    PUT /api/tasklists/{taskListId}: Actualizar una lista de tareas.
+    @PutMapping("/{tasklistId}")
+    public ResponseEntity<ResponseTaskListDTO> updateTaskList(@PathVariable Long tasklistId, @RequestBody RequestTaskListDTO requestTaskListDTO) {
+        ResponseTaskListDTO responseTaskListDTO = taskListService.updateTaskList(tasklistId, requestTaskListDTO).orElse(null);
+
+        return ResponseEntity.ok(responseTaskListDTO);
     }
 
 }
