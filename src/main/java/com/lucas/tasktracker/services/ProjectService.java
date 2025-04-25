@@ -1,6 +1,7 @@
 package com.lucas.tasktracker.services;
 
 import com.lucas.tasktracker.dtos.requests.AddMemberDTO;
+import com.lucas.tasktracker.dtos.requests.AddTaskListDTO;
 import com.lucas.tasktracker.dtos.requests.RequestProjectDTO;
 import com.lucas.tasktracker.dtos.responses.ResponseProjectDTO;
 import com.lucas.tasktracker.dtos.responses.ResponseTaskListDTO;
@@ -58,6 +59,16 @@ public class ProjectService {
 
         if(projectEntityOptional.isEmpty()) {
             return Optional.empty();
+        }
+
+
+        // Remover al proyecto de todas las listas de usuarios que lo tengan en su entidad
+
+        // 1. Recorrer el listado de members que tiene este proyecto
+        Set<UserEntity> projectMembers = projectEntityOptional.get().getMembers();
+
+        for(UserEntity member : projectMembers) {
+            member.getProjects().removeIf(project -> project.getId().equals(projectId));
         }
 
         projectRepository.deleteById(projectId);
@@ -193,9 +204,9 @@ public class ProjectService {
     }
 
     // Agregar una nueva lista de tareas dentro de un proyecto.
-    public Optional<ResponseProjectDTO> addTaskListToProject(Long projectId, Long taskListId) {
+    public Optional<ResponseProjectDTO> addTaskListToProject(Long projectId, AddTaskListDTO addTaskListId) {
         Optional<ProjectEntity> projectEntityOptional = projectRepository.findById(projectId);
-        Optional<TaskListEntity> taskListEntityOptional = taskListRepository.findById(taskListId);
+        Optional<TaskListEntity> taskListEntityOptional = taskListRepository.findById(addTaskListId.getTaskListId());
 
         if(projectEntityOptional.isEmpty() || taskListEntityOptional.isEmpty()) {
             return Optional.empty();

@@ -41,8 +41,8 @@ public class TaskListController {
 
 //    DELETE /api/tasklists/{taskListId}: Eliminar una lista de tareas.
     @DeleteMapping("/{taskListId}")
-    public ResponseEntity<Set<ResponseTaskListDTO>> deleteTaskListById(@PathVariable Long tasklistId) {
-        Set<ResponseTaskListDTO> responseTaskListDTOS = taskListService.deleteTaskListById(tasklistId).orElse(null);
+    public ResponseEntity<Set<ResponseTaskListDTO>> deleteTaskListById(@PathVariable Long taskListId) {
+        Set<ResponseTaskListDTO> responseTaskListDTOS = taskListService.deleteTaskListById(taskListId).orElse(null);
 
         return ResponseEntity.ok(responseTaskListDTOS);
     }
@@ -57,7 +57,7 @@ public class TaskListController {
 
 
 //    PUT /api/tasklists/{taskListId}: Actualizar una lista de tareas.
-    @PutMapping("/{tasklistId}")
+    @PatchMapping("/{tasklistId}")
     public ResponseEntity<ResponseTaskListDTO> updateTaskList(@PathVariable Long tasklistId, @RequestBody RequestTaskListDTO requestTaskListDTO) {
         ResponseTaskListDTO responseTaskListDTO = taskListService.updateTaskList(tasklistId, requestTaskListDTO).orElse(null);
 

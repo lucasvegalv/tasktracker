@@ -1,6 +1,7 @@
 package com.lucas.tasktracker.controllers;
 
 import com.lucas.tasktracker.dtos.requests.AddMemberDTO;
+import com.lucas.tasktracker.dtos.requests.AddTaskListDTO;
 import com.lucas.tasktracker.dtos.requests.RequestProjectDTO;
 import com.lucas.tasktracker.dtos.responses.ResponseProjectDTO;
 import com.lucas.tasktracker.dtos.responses.ResponseTaskListDTO;
@@ -91,15 +92,15 @@ public class ProjectController {
 
 
     // Agregar una nueva lista de tareas dentro de un proyecto.
-    @PostMapping("/api/projects/{projectId}/tasklists")
-    public ResponseEntity<ResponseProjectDTO> addTaskListToProject(@PathVariable Long projectId, @RequestBody Long taskListId) {
-        ResponseProjectDTO responseProjectDTO = projectService.addTaskListToProject(projectId, taskListId).orElse(null);
+    @PostMapping("/{projectId}/tasklists")
+    public ResponseEntity<ResponseProjectDTO> addTaskListToProject(@PathVariable Long projectId, @RequestBody AddTaskListDTO addTaskListDTO) {
+        ResponseProjectDTO responseProjectDTO = projectService.addTaskListToProject(projectId, addTaskListDTO).orElse(null);
 
         return ResponseEntity.ok(responseProjectDTO);
     }
 
     // Listar las listas de tareas de un proyecto.
-    @GetMapping("/api/projects/{projectId}/tasklists")
+    @GetMapping("/{projectId}/tasklists")
     public ResponseEntity<Set<ResponseTaskListDTO>> getProjectTaskLists(@PathVariable Long projectId) {
         Set<ResponseTaskListDTO> projectResponseTaskListDTO = projectService.getProjectTaskLists(projectId).orElse(null);
 
