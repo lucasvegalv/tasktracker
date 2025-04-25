@@ -13,12 +13,12 @@ import java.util.Date;
 @NoArgsConstructor
 public class TaskDTO {
 
-    private Long id;
+    private Long taskId;
     private String title;
     private String description;
     private Date dueDate;
     private PriorityEnum priority;
     private TaskStatusEnum status;
-    private TaskListEntity taskList;
+    private Long taskListId;
 
 }

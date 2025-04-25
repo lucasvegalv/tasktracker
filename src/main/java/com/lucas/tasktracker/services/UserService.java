@@ -1,7 +1,8 @@
 package com.lucas.tasktracker.services;
 
-import com.lucas.tasktracker.dtos.ProjectDTO;
-import com.lucas.tasktracker.dtos.UserDTO;
+import com.lucas.tasktracker.dtos.requests.RequestUserDTO;
+import com.lucas.tasktracker.dtos.responses.ResponseProjectDTO;
+import com.lucas.tasktracker.dtos.responses.ResponseUserDTO;
 import com.lucas.tasktracker.entities.ProjectEntity;
 import com.lucas.tasktracker.entities.UserEntity;
 import com.lucas.tasktracker.mappers.ProjectMapper;
@@ -21,23 +22,26 @@ public class UserService {
     UserRepository userRepository;
     UserMapper userMapper;
     ProjectMapper projectMapper;
+    RequestUserDTO requestUserDTO;
+    ResponseUserDTO responseUserDTO;
 
     public UserService(UserRepository userRepository, UserMapper userMapper, ProjectMapper projectMapper) {
         this.userRepository = userRepository;
         this.userMapper = userMapper;
+        this.projectMapper = projectMapper;
     }
 
     // Crear un nuevo usuario.
     @Transactional
-    public UserDTO createUser(UserDTO userDTO) {
+    public ResponseUserDTO createUser(RequestUserDTO requestUserDTO) {
 
-        UserEntity userEntity = userMapper.toUserEntity(userDTO);
+        UserEntity userEntity = userMapper.toUserEntity(requestUserDTO);
         UserEntity savedUserEntity =  userRepository.save(userEntity);
 
         System.out.println(savedUserEntity.toString());
         System.out.println("---------------------");
 
-        UserDTO responseUserDTO = userMapper.toUserDTO(savedUserEntity);
+        ResponseUserDTO responseUserDTO = userMapper.toResponseUserDTO(savedUserEntity);
         System.out.println(responseUserDTO.toString());
         System.out.println("---------------------");
 
@@ -45,23 +49,23 @@ public class UserService {
     }
 
     // Obtener lista paginada y ordenada de usuarios.
-    public List<UserDTO> getUsers() {
+    public List<ResponseUserDTO> getUsers() {
         List<UserEntity> userEntityList = userRepository.findAll();
-        List<UserDTO> userDTOList = userMapper.toUserDTOList(userEntityList);
+        List<ResponseUserDTO> responseUserDTOList = userMapper.toResponseUserDTOList(userEntityList);
 
-        return userDTOList;
+        return responseUserDTOList;
     }
 
     // Obtener detalles de un usuario específico.
-    public Optional<UserDTO> getUserById(Long id) {
+    public Optional<ResponseUserDTO> getUserById(Long id) {
         return userRepository.findById(id)
-                .map(userMapper::toUserDTO);
+                .map(userMapper::toResponseUserDTO);
     }
 
 
     // Actualizar un usuario existente.
     @Transactional
-    public Optional<UserDTO> updateUser(Long id, UserDTO userDTO) {
+    public Optional<ResponseUserDTO> updateUser(Long id, RequestUserDTO userDTO) {
         Optional<UserEntity> userEntityOptional = userRepository.findById(id);
 
         // Si lo encontramos, validamos que campo/s quiere actualizar
@@ -79,7 +83,7 @@ public class UserService {
             }
 
             userRepository.save(userEntity);
-            UserDTO updatedUserDTO = userMapper.toUserDTO(userEntity);
+            ResponseUserDTO updatedUserDTO = userMapper.toResponseUserDTO(userEntity);
             return Optional.of(updatedUserDTO);
         }
         return Optional.empty();
@@ -88,18 +92,18 @@ public class UserService {
 
 
     // Eliminar un usuario.
-    public List<UserDTO> deleteUser(Long user_id) {
+    public List<ResponseUserDTO> deleteUser(Long user_id) {
         userRepository.deleteById(user_id);
-        List<UserDTO> userDTOList = userMapper.toUserDTOList(userRepository.findAll());
+        List<ResponseUserDTO> responseUserDTOList = userMapper.toResponseUserDTOList(userRepository.findAll());
 
-        return userDTOList;
+        return responseUserDTOList;
     }
 
 
 
     // Listar los proyectos a los que pertenece un usuario.
 
-    public Optional<Set<ProjectDTO>> getUserProjects(Long user_id) {
+    public Optional<Set<ResponseProjectDTO>> getUserProjects(Long user_id) {
         // 1. Encontrar al usuario por su id
         Optional<UserEntity> userEntityOptional = userRepository.findById(user_id);
 
@@ -108,11 +112,13 @@ public class UserService {
 
             // 2. Con ese id, accedemos a su listado de proyectos
             Set<ProjectEntity> userProjectsEntity = userEntity.getProjects();
-            Set<ProjectDTO> userProjectDTOSet = userProjectsEntity.stream()
-                    .map(projectMapper::toProjectDTO)
+            Set<ResponseProjectDTO> userResponseProjectsDTOs = userProjectsEntity.stream()
+                    .map(projectMapper::toResponseProjectDTO)
                     .collect(Collectors.toSet());
 
-            return Optional.of(userProjectDTOSet);
+            return Optional.of(userResponseProjectsDTOs);
+
+
         }
         return Optional.empty();
     }

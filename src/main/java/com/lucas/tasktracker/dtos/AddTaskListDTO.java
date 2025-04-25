@@ -10,10 +10,7 @@ import java.util.Set;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class TaskListDTO {
-
-    private Long taskListId;
+public class AddTaskListDTO {
     private String name;
     private String description;
-    private Set<TaskDTO> tasks;
 }

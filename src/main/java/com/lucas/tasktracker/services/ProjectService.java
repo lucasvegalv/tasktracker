@@ -1,17 +1,22 @@
 package com.lucas.tasktracker.services;
 
-import com.lucas.tasktracker.dtos.AddMemberDTO;
-import com.lucas.tasktracker.dtos.ProjectDTO;
-import com.lucas.tasktracker.dtos.UpdateProjectDTO;
-import com.lucas.tasktracker.dtos.UserDTO;
+import com.lucas.tasktracker.dtos.*;
+import com.lucas.tasktracker.dtos.requests.RequestProjectDTO;
+import com.lucas.tasktracker.dtos.requests.RequestUserDTO;
+import com.lucas.tasktracker.dtos.responses.ResponseProjectDTO;
+import com.lucas.tasktracker.dtos.responses.ResponseUserDTO;
 import com.lucas.tasktracker.entities.ProjectEntity;
+import com.lucas.tasktracker.entities.TaskListEntity;
 import com.lucas.tasktracker.entities.UserEntity;
 import com.lucas.tasktracker.mappers.ProjectMapper;
+import com.lucas.tasktracker.mappers.TaskListMapper;
 import com.lucas.tasktracker.mappers.UserMapper;
 import com.lucas.tasktracker.repositories.ProjectRepository;
+import com.lucas.tasktracker.repositories.TaskListRepository;
 import com.lucas.tasktracker.repositories.UserRepository;
 import jakarta.transaction.Transactional;
 import org.apache.catalina.User;
+import org.apache.coyote.Request;
 import org.hibernate.sql.Update;
 import org.springframework.stereotype.Service;
 
@@ -24,31 +29,35 @@ import java.util.stream.Collectors;
 @Service
 public class ProjectService {
 
+    private final TaskListRepository taskListRepository;
     ProjectMapper projectMapper;
     ProjectRepository projectRepository;
     UserMapper userMapper;
     UserRepository userRepository;
+    TaskListMapper taskListMapper;
 
-    public ProjectService(ProjectMapper projectMapper, ProjectRepository projectRepository, UserMapper userMapper, UserRepository userRepository) {
+    public ProjectService(ProjectMapper projectMapper, ProjectRepository projectRepository, UserMapper userMapper, UserRepository userRepository, TaskListRepository taskListRepository, TaskListMapper taskListMapper) {
         this.projectMapper = projectMapper;
         this.projectRepository = projectRepository;
         this.userMapper = userMapper;
         this.userRepository = userRepository;
+        this.taskListRepository = taskListRepository;
+        this.taskListMapper = taskListMapper;
     }
 
     // Crear un nuevo proyecto.
     @Transactional
-    public ProjectDTO createProject(ProjectDTO projectDTO) {
-        ProjectEntity projectEntity = projectMapper.toProjectEntity(projectDTO);
+    public ResponseProjectDTO createProject(RequestProjectDTO requestProjectDTO) {
+        ProjectEntity projectEntity = projectMapper.toProjectEntity(requestProjectDTO);
         projectRepository.save(projectEntity);
-        ProjectDTO savedProjectDTO = projectMapper.toProjectDTO(projectEntity);
+        ResponseProjectDTO savedProjectDTO = projectMapper.toResponseProjectDTO(projectEntity);
 
         return savedProjectDTO;
     }
 
     // Eliminar un proyecto.
     @Transactional
-    public Optional<List<ProjectDTO>> deleteProject(Long projectId) {
+    public Optional<List<ResponseProjectDTO>> deleteProject(Long projectId) {
         Optional<ProjectEntity> projectEntityOptional = projectRepository.findById(projectId);
 
         if(projectEntityOptional.isEmpty()) {
@@ -58,8 +67,8 @@ public class ProjectService {
         projectRepository.deleteById(projectId);
 
         List<ProjectEntity> projectEntityList = projectRepository.findAll();
-        List<ProjectDTO> projectsDTOList = projectEntityList.stream()
-                .map(projectMapper::toProjectDTO)
+        List<ResponseProjectDTO> projectsDTOList = projectEntityList.stream()
+                .map(projectMapper::toResponseProjectDTO)
                 .toList();
 
         return Optional.of(projectsDTOList);
@@ -67,7 +76,7 @@ public class ProjectService {
 
     // Añadir un usuario como miembro a un proyecto.
     @Transactional
-    public Optional<Set<UserDTO>> addMemberToProject(Long projectId, AddMemberDTO addMemberDTO) {
+    public Optional<Set<ResponseUserDTO>> addMemberToProject(Long projectId, AddMemberDTO addMemberDTO) {
         Optional<ProjectEntity> projectEntityOptional = projectRepository.findById(projectId);
         Optional<UserEntity> userEntityOptional = userRepository.findById(addMemberDTO.getMemberId());
 
@@ -83,8 +92,8 @@ public class ProjectService {
                 userRepository.save(userEntity);
 
                 Set<UserEntity> projectMembersEntityList = projectEntity.getMembers();
-                Set<UserDTO> projectMembersDTOList = projectMembersEntityList.stream()
-                        .map(userMapper::toUserDTO)
+                Set<ResponseUserDTO> projectMembersDTOList = projectMembersEntityList.stream()
+                        .map(userMapper::toResponseUserDTO)
                         .collect(Collectors.toSet());
 
                 return Optional.of(projectMembersDTOList);
@@ -99,10 +108,10 @@ public class ProjectService {
 
 
     // Obtener lista paginada/ordenada de proyectos.
-    public List<ProjectDTO> getAllProjects() {
+    public List<ResponseProjectDTO> getAllProjects() {
         List<ProjectEntity> projectsEntity = projectRepository.findAll();
-        List<ProjectDTO> projectsDTO = projectsEntity.stream()
-                .map(projectMapper::toProjectDTO)
+        List<ResponseProjectDTO> projectsDTO = projectsEntity.stream()
+                .map(projectMapper::toResponseProjectDTO)
                 .collect(Collectors.toList());
 
         return projectsDTO;
@@ -110,12 +119,12 @@ public class ProjectService {
 
 
     // Obtener detalles de un proyecto.
-    public Optional<ProjectDTO> getProjectById(Long projectId) {
+    public Optional<ResponseProjectDTO> getProjectById(Long projectId) {
         Optional<ProjectEntity> projectEntityOptional = projectRepository.findById(projectId);
 
         if(projectEntityOptional.isPresent()) {
             ProjectEntity projectEntity = projectEntityOptional.get();
-            ProjectDTO projectDTO = projectMapper.toProjectDTO(projectEntity);
+            ResponseProjectDTO projectDTO = projectMapper.toResponseProjectDTO(projectEntity);
 
             return Optional.of(projectDTO);
         }
@@ -125,17 +134,17 @@ public class ProjectService {
 
 
     // Actualizar un proyecto.
-    public Optional<ProjectDTO> updateProject(Long projectId, UpdateProjectDTO updateProjectDTO) {
+    public Optional<ResponseProjectDTO> updateProject(Long projectId, RequestProjectDTO requestProjectDTO) {
         Optional<ProjectEntity> projectEntityOptional = projectRepository.findById(projectId);
 
         if(projectEntityOptional.isPresent()) {
             ProjectEntity projectEntity = projectEntityOptional.get();
 
-            if(updateProjectDTO.getTitle() != null) {
-                projectEntity.setTitle(updateProjectDTO.getTitle());
+            if(requestProjectDTO.getTitle() != null) {
+                projectEntity.setTitle(requestProjectDTO.getTitle());
                 projectRepository.save(projectEntity);
 
-                ProjectDTO updatedProjectDTO = projectMapper.toProjectDTO(projectEntity);
+                ResponseProjectDTO updatedProjectDTO = projectMapper.toResponseProjectDTO(projectEntity);
 
                 return Optional.of(updatedProjectDTO);
             }
@@ -143,10 +152,9 @@ public class ProjectService {
         return Optional.empty();
     }
 
-    //    DELETE /api/projects/{projectId}/members/{userId}: Quitar un usuario de un proyecto.
-
+    // Quitar un usuario de un proyecto.
     @Transactional
-    public Optional<Set<UserDTO>> deleteProjectMember(Long projectId, Long memberId) {
+    public Optional<Set<ResponseUserDTO>> deleteProjectMember(Long projectId, Long memberId) {
         Optional<ProjectEntity> projectEntityOptional = projectRepository.findById(projectId);
         Optional<UserEntity> memberEntityOptional = userRepository.findById(memberId);
 
@@ -165,15 +173,15 @@ public class ProjectService {
 
         projectRepository.save(projectEntity);
 
-        Set<UserDTO> updatedMembersDTO = projectEntity.getMembers().stream()
-                .map(userMapper::toUserDTO)
+        Set<ResponseUserDTO> updatedMembersDTO = projectEntity.getMembers().stream()
+                .map(userMapper::toResponseUserDTO)
                 .collect(Collectors.toSet());
 
         return Optional.of(updatedMembersDTO);
     }
 
     //  Listar los usuarios miembros de un proyecto.
-    public Optional<Set<UserDTO>> getProjectMembers(Long projectId) {
+    public Optional<Set<ResponseUserDTO>> getProjectMembers(Long projectId) {
         Optional<ProjectEntity> projectEntityOptional = projectRepository.findById(projectId);
 
         if(projectEntityOptional.isEmpty()) {
@@ -181,13 +189,59 @@ public class ProjectService {
         }
 
         Set<UserEntity> projectMembersEntityList = projectEntityOptional.get().getMembers();
-        Set<UserDTO> projectMembersDTOList = projectMembersEntityList.stream()
-                .map(userMapper::toUserDTO)
+        Set<ResponseUserDTO> projectMembersDTOList = projectMembersEntityList.stream()
+                .map(userMapper::toResponseUserDTO)
                 .collect(Collectors.toSet());
 
         return Optional.of(projectMembersDTOList);
     }
 
-    //    POST /api/projects/{projectId}/tasklists: Crear una nueva lista de tareas dentro de un proyecto.
-    //    GET /api/projects/{projectId}/tasklists: Listar las listas de tareas de un proyecto.
+    // Agregar una nueva lista de tareas dentro de un proyecto.
+    public Optional<ResponseProjectDTO> addTaskListToProject(Long projectId, Long taskListId) {
+        Optional<ProjectEntity> projectEntityOptional = projectRepository.findById(projectId);
+        Optional<TaskListEntity> taskListEntityOptional = taskListRepository.findById(taskListId);
+
+        if(projectEntityOptional.isEmpty() || taskListEntityOptional.isEmpty()) {
+            return Optional.empty();
+        }
+
+        ProjectEntity projectEntity = projectEntityOptional.get();
+        TaskListEntity taskListEntity = taskListEntityOptional.get();
+
+        boolean isACurrentTaskList = projectEntity.getTaskLists().contains(taskListEntity);
+
+        if(!isACurrentTaskList) {
+            taskListEntity.setProject(projectEntity);
+            projectEntity.getTaskLists().add(taskListEntity);
+
+            projectRepository.save(projectEntity);
+
+            ResponseProjectDTO responseProjectDTO = projectMapper.toResponseProjectDTO(projectEntity);
+            return Optional.of(responseProjectDTO);
+        }
+
+        return Optional.empty();
+    }
+
+
+    // Listar las listas de tareas de un proyecto.
+
+    public Optional<Set<TaskListDTO>> getProjectTaskLists(Long projectId) {
+
+        Optional<ProjectEntity> projectEntityOptional = projectRepository.findById(projectId);
+
+        if(projectEntityOptional.isEmpty()) {
+            Optional.empty();
+        }
+
+        ProjectEntity projectEntity = projectEntityOptional.get();
+        Set<TaskListEntity> projectTaskListEntity = projectEntity.getTaskLists();
+
+        Set<TaskListDTO> projectTaskListDTO = projectTaskListEntity.stream()
+                .map(taskListMapper::toTaskListDTO)
+                .collect(Collectors.toSet());
+
+        return Optional.of(projectTaskListDTO);
+    }
+
 }
