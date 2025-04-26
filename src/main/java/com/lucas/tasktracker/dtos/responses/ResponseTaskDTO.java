@@ -18,6 +18,6 @@ public class ResponseTaskDTO {
     private Date dueDate;
     private PriorityEnum priority;
     private TaskStatusEnum status;
-    private Long taskListId;
+    private ResponseTaskListDTO taskListDTO;
 
 }
