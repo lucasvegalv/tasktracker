@@ -8,6 +8,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class SimpleResponseTaskListDTO {
-    private int taskListId;
+    private Long taskListId;
     private String name;
 }

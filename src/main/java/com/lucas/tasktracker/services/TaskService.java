@@ -6,6 +6,7 @@ import com.lucas.tasktracker.entities.TaskEntity;
 import com.lucas.tasktracker.mappers.TaskMapper;
 import com.lucas.tasktracker.repositories.TaskRepository;
 import com.lucas.tasktracker.repositories.UserRepository;
+import org.hibernate.tool.schema.internal.exec.ScriptTargetOutputToFile;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
@@ -34,7 +35,34 @@ public class TaskService {
        }
 
        TaskEntity taskEntity = taskEntityOptional.get();
+
+        System.out.println("------------------------------------- DEBUG ---------------------------------------------");
+        System.out.println("TASK ENTITY: ");
+        System.out.println("TASK:" + taskEntity.getId());
+        System.out.println("TASK:" + taskEntity.getTitle());
+        System.out.println("TASK:" + taskEntity.getDescription());
+        System.out.println("TASK:" + taskEntity.getPriority());
+        System.out.println("TASK:" + taskEntity.getDueDate());
+        System.out.println("TASK:" + taskEntity.getStatus());
+        System.out.println("TASK:" + taskEntity.getTaskList());
+        System.out.println("------------------------------------- DEBUG ---------------------------------------------");
+//        System.out.print("TASK ENTITY >>>> TASK LIST: ");
+//        System.out.print("TASK LIST ID:" + taskEntity.getTaskList().getId());
+//        System.out.print("       ");
+//        System.out.print("TASK LIST NAME:" + taskEntity.getTaskList().getName());
+//        System.out.println("------------------------------------- DEBUG ---------------------------------------------");
+//        System.out.println(" ");
+//        System.out.println(" ");
+//        System.out.println(" ");
+
        ResponseTaskDTO responseTaskDTO = taskMapper.toResponseTaskDTO(taskEntity);
+
+//        System.out.println("------------------------------------- DEBUG ---------------------------------------------");
+//        System.out.print("SIMPLE RESPONSE TASK LIST DTO: ");
+//        System.out.print("ID:" + responseTaskDTO.getTaskList().getTaskListId());
+//        System.out.print("       ");
+//        System.out.print("NAME:" + responseTaskDTO.getTaskList().getName());
+//        System.out.println("------------------------------------- DEBUG ---------------------------------------------");
 
        return  Optional.of(responseTaskDTO);
     }

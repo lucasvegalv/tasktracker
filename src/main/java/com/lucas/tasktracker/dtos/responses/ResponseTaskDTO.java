@@ -18,6 +18,6 @@ public class ResponseTaskDTO {
     private Date dueDate;
     private PriorityEnum priority;
     private TaskStatusEnum status;
-    private ResponseTaskListDTO taskListDTO;
+    private SimpleResponseTaskListDTO taskList; // Evitamos dependencia circular al no usar ResponseTaskListDTO y por lo tanto usar TaskListMapper en TaskMapper
 
 }

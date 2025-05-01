@@ -1,6 +1,8 @@
 package com.lucas.tasktracker.controllers;
 
+import com.lucas.tasktracker.dtos.requests.AddTaskDTO;
 import com.lucas.tasktracker.dtos.requests.RequestTaskListDTO;
+import com.lucas.tasktracker.dtos.responses.ResponseTaskDTO;
 import com.lucas.tasktracker.dtos.responses.ResponseTaskListDTO;
 import com.lucas.tasktracker.dtos.responses.ResponseUserDTO;
 import com.lucas.tasktracker.services.TaskListService;
@@ -64,4 +66,17 @@ public class TaskListController {
         return ResponseEntity.ok(responseTaskListDTO);
     }
 
+
+
+//    POST /api/tasklists/{taskListId}/tasks: Agregar una tarea a una lista de tareas
+    @PostMapping("/{tasklistId}/tasks")
+    public ResponseEntity<Set<ResponseTaskDTO>> addTaskToTaskList(@PathVariable Long tasklistId, @RequestBody AddTaskDTO addTaskDTO) {
+        Set<ResponseTaskDTO> taskListTasks = taskListService.addTaskToTaskList(tasklistId, addTaskDTO).orElse(null);
+
+        return ResponseEntity.ok(taskListTasks);
+    }
+
+
+
+//    GET /api/tasklists/{taskListId}/tasks: Obtener todas las tareas de una lista de tareas
 }
