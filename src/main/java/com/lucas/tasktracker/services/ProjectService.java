@@ -45,6 +45,10 @@ public class ProjectService {
     // Crear un nuevo proyecto.
     @Transactional
     public ResponseProjectDTO createProject(RequestProjectDTO requestProjectDTO) {
+
+        // Validar que el proyecto no exista. Si existe lanzamos un PROJECT_ALREADY_EXISTS
+
+
         ProjectEntity projectEntity = projectMapper.toProjectEntity(requestProjectDTO);
         projectRepository.save(projectEntity);
         ResponseProjectDTO savedProjectDTO = projectMapper.toResponseProjectDTO(projectEntity);
@@ -55,6 +59,9 @@ public class ProjectService {
     // Eliminar un proyecto.
     @Transactional
     public Optional<List<ResponseProjectDTO>> deleteProject(Long projectId) {
+
+        // Validamos de que exista y asi poder eliminarlo. Si no existe lanzamos un PROJECT_NOT_FOUND
+
         Optional<ProjectEntity> projectEntityOptional = projectRepository.findById(projectId);
 
         if(projectEntityOptional.isEmpty()) {
@@ -84,6 +91,13 @@ public class ProjectService {
     // Añadir un usuario como miembro a un proyecto.
     @Transactional
     public Optional<Set<ResponseUserDTO>> addMemberToProject(Long projectId, AddMemberDTO addMemberDTO) {
+
+        // Validar que el proyecto exista. Si no existe lanzamos un PROJECT_NOT_FOUND
+
+        // Validar que el usuario exista. Si no existe lanzamos un USER_NOT_FOUND
+
+        // Validar de que el usuario no sea parte del proyecto. Si lo es, lanzamos un USER_ALREADY_MEMBER
+
         Optional<ProjectEntity> projectEntityOptional = projectRepository.findById(projectId);
         Optional<UserEntity> userEntityOptional = userRepository.findById(addMemberDTO.getMemberId());
 
@@ -127,6 +141,9 @@ public class ProjectService {
 
     // Obtener detalles de un proyecto.
     public Optional<ResponseProjectDTO> getProjectById(Long projectId) {
+
+        // Validar que el proyecto exista. Si no existe lanzamos un PROJECT_NOT_FOUND
+
         Optional<ProjectEntity> projectEntityOptional = projectRepository.findById(projectId);
 
         if(projectEntityOptional.isPresent()) {
@@ -142,6 +159,11 @@ public class ProjectService {
 
     // Actualizar un proyecto.
     public Optional<ResponseProjectDTO> updateProject(Long projectId, RequestProjectDTO requestProjectDTO) {
+
+        // Validar que el proyecto exista. Si no existe lanzamos un PROJECT_NOT_FOUND
+
+        // Validar de que el nombre del proyecto no este en uso ya. Si lo esta, lanzamos un PROJECT_ALREADY_EXISTS
+
         Optional<ProjectEntity> projectEntityOptional = projectRepository.findById(projectId);
 
         if(projectEntityOptional.isPresent()) {
@@ -162,6 +184,11 @@ public class ProjectService {
     // Quitar un usuario de un proyecto.
     @Transactional
     public Optional<Set<ResponseUserDTO>> deleteProjectMember(Long projectId, Long memberId) {
+
+        // Validar que el proyecto exista. Si no existe lanzamos un PROJECT_NOT_FOUND
+
+        // Validar que el usuario exista. Si no existe lanzamos un USER_NOT_FOUND
+
         Optional<ProjectEntity> projectEntityOptional = projectRepository.findById(projectId);
         Optional<UserEntity> memberEntityOptional = userRepository.findById(memberId);
 
@@ -189,6 +216,9 @@ public class ProjectService {
 
     //  Listar los usuarios miembros de un proyecto.
     public Optional<Set<ResponseUserDTO>> getProjectMembers(Long projectId) {
+
+        // Validar que el proyecto exista. Si no existe lanzamos un PROJECT_NOT_FOUND
+
         Optional<ProjectEntity> projectEntityOptional = projectRepository.findById(projectId);
 
         if(projectEntityOptional.isEmpty()) {
@@ -205,6 +235,11 @@ public class ProjectService {
 
     // Agregar una nueva lista de tareas dentro de un proyecto.
     public Optional<ResponseProjectDTO> addTaskListToProject(Long projectId, AddTaskListDTO addTaskListId) {
+
+        // Validar que el proyecto exista. Si no existe lanzamos un PROJECT_NOT_FOUND
+
+        // Validar de que la lista de tareas exista. Si no existe, lanzamos un TASKLIST_NOT_FOUND
+
         Optional<ProjectEntity> projectEntityOptional = projectRepository.findById(projectId);
         Optional<TaskListEntity> taskListEntityOptional = taskListRepository.findById(addTaskListId.getTaskListId());
 
@@ -234,6 +269,8 @@ public class ProjectService {
     // Listar las listas de tareas de un proyecto.
 
     public Optional<Set<ResponseTaskListDTO>> getProjectTaskLists(Long projectId) {
+
+        // Validar que el proyecto exista. Si no existe lanzamos un PROJECT_NOT_FOUND
 
         Optional<ProjectEntity> projectEntityOptional = projectRepository.findById(projectId);
 
