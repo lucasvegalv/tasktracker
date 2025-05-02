@@ -40,7 +40,7 @@ public class TaskListService {
     }
 
 //    GET /api/tasklists: Obtener todas las listas de tareas.
-    public List<ResponseTaskListDTO getAllTaskLists() {
+    public List<ResponseTaskListDTO> getAllTaskLists() {
         List<TaskListEntity> taskListEntities = taskListRepository.findAll();
         List<ResponseTaskListDTO> responseTaskListsDTOs = taskListEntities.stream()
                 .map(taskListMapper::toResponseTaskListDTO)

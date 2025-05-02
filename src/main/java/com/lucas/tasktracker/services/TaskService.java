@@ -3,6 +3,9 @@ package com.lucas.tasktracker.services;
 import com.lucas.tasktracker.dtos.requests.RequestTaskDTO;
 import com.lucas.tasktracker.dtos.responses.ResponseTaskDTO;
 import com.lucas.tasktracker.entities.TaskEntity;
+import com.lucas.tasktracker.exceptions.BadArgumentExceptionType;
+import com.lucas.tasktracker.exceptions.NotFoundException;
+import com.lucas.tasktracker.exceptions.NotFoundExceptionType;
 import com.lucas.tasktracker.mappers.TaskMapper;
 import com.lucas.tasktracker.repositories.TaskRepository;
 import org.springframework.stereotype.Service;
@@ -23,36 +26,42 @@ public class TaskService {
     }
 
     // GET /api/tasks/{taskId}: Obtener detalles de una tarea específica.
-    public Optional<ResponseTaskDTO> getTaskById(Long id) {
+    public ResponseTaskDTO getTaskById(Long id) {
        Optional<TaskEntity> taskEntityOptional = taskRepository.findById(id);
 
        if(taskEntityOptional.isEmpty()) {
-           return Optional.empty();
+           throw NotFoundExceptionType.TASK_NOT_FOUND.getException();
        }
 
        TaskEntity taskEntity = taskEntityOptional.get();
        ResponseTaskDTO responseTaskDTO = taskMapper.toResponseTaskDTO(taskEntity);
 
-       return  Optional.of(responseTaskDTO);
+       return responseTaskDTO;
     }
 
     // POST /api/tasks: Crear una nueva tarea
-    public Optional<ResponseTaskDTO> createTask(RequestTaskDTO requestTaskDTO) {
+    public ResponseTaskDTO createTask(RequestTaskDTO requestTaskDTO) {
+        Optional<TaskEntity> taskEntityOptional = taskRepository.findByTitle(requestTaskDTO.getTitle());
+
+        if(taskEntityOptional.isPresent()) {
+            throw BadArgumentExceptionType.DUPLICATE_TASK_NAME.getException();
+        }
+
         TaskEntity taskEntity = taskMapper.requestTaskDTOToTaskEntity(requestTaskDTO);
         taskRepository.save(taskEntity);
 
         ResponseTaskDTO responseTaskDTO = taskMapper.toResponseTaskDTO(taskEntity);
 
-        return Optional.of(responseTaskDTO);
+        return responseTaskDTO;
     }
 
 
     // PATCH /api/tasks/{taskId}: Actualizar parcialmente una tarea (ej: estado, prioridad).
-    public Optional<ResponseTaskDTO> updateTask(Long taskId, RequestTaskDTO requestTaskDTO) {
+    public ResponseTaskDTO updateTask(Long taskId, RequestTaskDTO requestTaskDTO) {
         Optional<TaskEntity> taskEntityOptional = taskRepository.findById(taskId);
 
         if(taskEntityOptional.isEmpty()) {
-            return Optional.empty();
+            throw NotFoundExceptionType.TASK_NOT_FOUND.getException();
         }
 
         TaskEntity taskEntity = taskEntityOptional.get();
@@ -73,15 +82,15 @@ public class TaskService {
 
         ResponseTaskDTO responseTaskDTO = taskMapper.toResponseTaskDTO(taskEntity);
 
-        return Optional.of(responseTaskDTO);
+        return responseTaskDTO;
     }
 
     // DELETE /api/tasks/{taskId}: Eliminar una tarea.
-    public Optional<Set<ResponseTaskDTO>> deleteTask(Long id) {
+    public Set<ResponseTaskDTO> deleteTask(Long id) {
         Optional<TaskEntity> taskEntityOptional = taskRepository.findById(id);
 
         if(taskEntityOptional.isEmpty()) {
-            return Optional.empty();
+           throw NotFoundExceptionType.TASK_NOT_FOUND.getException();
         }
 
         taskRepository.deleteById(id);
@@ -91,7 +100,7 @@ public class TaskService {
                 .map(taskMapper::toResponseTaskDTO)
                 .collect(Collectors.toSet());
 
-        return Optional.of(responseTaskDTOSet);
+        return responseTaskDTOSet;
     }
 
 }
