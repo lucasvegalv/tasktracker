@@ -5,6 +5,7 @@ import com.lucas.tasktracker.dtos.responses.ResponseProjectDTO;
 import com.lucas.tasktracker.dtos.responses.ResponseUserDTO;
 import com.lucas.tasktracker.entities.ProjectEntity;
 import com.lucas.tasktracker.entities.UserEntity;
+import com.lucas.tasktracker.exceptions.NotFoundExceptionType;
 import com.lucas.tasktracker.mappers.ProjectMapper;
 import com.lucas.tasktracker.mappers.UserMapper;
 import com.lucas.tasktracker.repositories.UserRepository;
@@ -34,7 +35,7 @@ public class UserService {
     // Crear un nuevo usuario.
     @Transactional
     public ResponseUserDTO createUser(RequestUserDTO requestUserDTO) {
-
+        // No validamos que exista porque no modelamos un identificador unico como un DNI. Pueden haber varios usuarios que se llamen igual y tengan el mismo trabajo.
         UserEntity userEntity = userMapper.toUserEntity(requestUserDTO);
         UserEntity savedUserEntity =  userRepository.save(userEntity);
 
@@ -57,42 +58,58 @@ public class UserService {
     }
 
     // Obtener detalles de un usuario específico.
-    public Optional<ResponseUserDTO> getUserById(Long id) {
-        return userRepository.findById(id)
-                .map(userMapper::toResponseUserDTO);
+    public ResponseUserDTO getUserById(Long id) {
+        Optional<UserEntity> userEntityOptional = userRepository.findById(id);
+        if (userEntityOptional.isEmpty()) {
+            throw NotFoundExceptionType.USER_NOT_FOUND.getException();
+        }
+
+        ResponseUserDTO responseUserDTO = userMapper.toResponseUserDTO(userEntityOptional.get());
+
+        return responseUserDTO;
     }
 
 
     // Actualizar un usuario existente.
     @Transactional
-    public Optional<ResponseUserDTO> updateUser(Long id, RequestUserDTO userDTO) {
+    public ResponseUserDTO updateUser(Long id, RequestUserDTO userDTO) {
         Optional<UserEntity> userEntityOptional = userRepository.findById(id);
 
-        // Si lo encontramos, validamos que campo/s quiere actualizar
-        if (userEntityOptional.isPresent()) {
-            UserEntity userEntity = userEntityOptional.get();
-
-            if(userDTO.getUsername() != null) {
-                userEntity.setUsername(userDTO.getUsername());
-            }
-            if(userDTO.getLastname() != null) {
-                userEntity.setLastname(userDTO.getLastname());
-            }
-            if(userDTO.getJob() != null) {
-                userEntity.setJob(userDTO.getJob());
-            }
-
-            userRepository.save(userEntity);
-            ResponseUserDTO updatedUserDTO = userMapper.toResponseUserDTO(userEntity);
-            return Optional.of(updatedUserDTO);
+        if(!userEntityOptional.isEmpty()) {
+            throw NotFoundExceptionType.USER_NOT_FOUND.getException();
         }
-        return Optional.empty();
+
+        // Si lo encontramos, validamos que campo/s quiere actualizar
+
+        UserEntity userEntity = userEntityOptional.get();
+
+        if(userDTO.getUsername() != null) {
+            userEntity.setUsername(userDTO.getUsername());
+        }
+        if(userDTO.getLastname() != null) {
+            userEntity.setLastname(userDTO.getLastname());
+        }
+        if(userDTO.getJob() != null) {
+            userEntity.setJob(userDTO.getJob());
+        }
+
+        userRepository.save(userEntity);
+        ResponseUserDTO updatedUserDTO = userMapper.toResponseUserDTO(userEntity);
+
+        return updatedUserDTO;
+
     }
 
 
 
     // Eliminar un usuario.
     public List<ResponseUserDTO> deleteUser(Long user_id) {
+        Optional<UserEntity> userEntityOptional = userRepository.findById(user_id);
+
+        if(!userEntityOptional.isEmpty()) {
+            throw NotFoundExceptionType.USER_NOT_FOUND.getException();
+        }
+
         userRepository.deleteById(user_id);
         List<ResponseUserDTO> responseUserDTOList = userMapper.toResponseUserDTOList(userRepository.findAll());
 
@@ -103,24 +120,23 @@ public class UserService {
 
     // Listar los proyectos a los que pertenece un usuario.
 
-    public Optional<Set<ResponseProjectDTO>> getUserProjects(Long user_id) {
+    public Set<ResponseProjectDTO> getUserProjects(Long user_id) {
         // 1. Encontrar al usuario por su id
         Optional<UserEntity> userEntityOptional = userRepository.findById(user_id);
 
-        if(userEntityOptional.isPresent()) {
-            UserEntity userEntity = userEntityOptional.get();
-
-            // 2. Con ese id, accedemos a su listado de proyectos
-            Set<ProjectEntity> userProjectsEntity = userEntity.getProjects();
-            Set<ResponseProjectDTO> userResponseProjectsDTOs = userProjectsEntity.stream()
-                    .map(projectMapper::toResponseProjectDTO)
-                    .collect(Collectors.toSet());
-
-            return Optional.of(userResponseProjectsDTOs);
-
-
+        if(userEntityOptional.isEmpty()) {
+            throw NotFoundExceptionType.USER_NOT_FOUND.getException();
         }
-        return Optional.empty();
+
+        UserEntity userEntity = userEntityOptional.get();
+
+        // 2. Con ese id, accedemos a su listado de proyectos
+        Set<ProjectEntity> userProjectsEntity = userEntity.getProjects();
+        Set<ResponseProjectDTO> userResponseProjectsDTOs = userProjectsEntity.stream()
+                .map(projectMapper::toResponseProjectDTO)
+                .collect(Collectors.toSet());
+
+        return userResponseProjectsDTOs;
     }
 
 

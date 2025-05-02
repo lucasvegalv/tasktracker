@@ -5,6 +5,7 @@ import com.lucas.tasktracker.dtos.requests.RequestUserDTO;
 import com.lucas.tasktracker.dtos.responses.ResponseProjectDTO;
 import com.lucas.tasktracker.dtos.responses.ResponseUserDTO;
 import com.lucas.tasktracker.services.UserService;
+import org.apache.coyote.Response;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
@@ -40,11 +41,9 @@ public class UserController {
     // Obtener detalles de un usuario específico.
     @GetMapping("/{user_id}")
     public ResponseEntity<ResponseUserDTO> getUser(@PathVariable Long user_id) {
-     Optional<ResponseUserDTO> userDTO = userService.getUserById(user_id);
+     ResponseUserDTO userDTO = userService.getUserById(user_id);
 
-     return userDTO
-             .map(ResponseEntity::ok)
-             .orElse(ResponseEntity.notFound().build());
+     return ResponseEntity.ok(userDTO);
     }
 
     // Actualizar un usuario existente.
@@ -52,7 +51,7 @@ public class UserController {
     public ResponseEntity<ResponseUserDTO> updateUser(@PathVariable Long user_id, @RequestBody RequestUserDTO requestUserDTO) {
         ResponseUserDTO updatedUser = userService.updateUser(user_id, requestUserDTO);
 
-        return updatedUser.map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+        return ResponseEntity.ok(updatedUser);
     }
 
     // Eliminar un usuario.
@@ -68,6 +67,6 @@ public class UserController {
     public ResponseEntity<Set<ResponseProjectDTO>> getUserProjects(@PathVariable Long user_id) {
         Set<ResponseProjectDTO> userProjectsDTO = userService.getUserProjects(user_id);
 
-        return userProjectsDTO.map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+        return ResponseEntity.ok(userProjectsDTO);
     }
 }
