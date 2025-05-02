@@ -50,7 +50,7 @@ public class UserController {
     // Actualizar un usuario existente.
     @PatchMapping("/{user_id}")
     public ResponseEntity<ResponseUserDTO> updateUser(@PathVariable Long user_id, @RequestBody RequestUserDTO requestUserDTO) {
-        Optional<ResponseUserDTO> updatedUser = userService.updateUser(user_id, requestUserDTO);
+        ResponseUserDTO updatedUser = userService.updateUser(user_id, requestUserDTO);
 
         return updatedUser.map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
     }
@@ -66,7 +66,7 @@ public class UserController {
     // Listar los proyectos a los que pertenece un usuario.
     @GetMapping("/{user_id}/projects")
     public ResponseEntity<Set<ResponseProjectDTO>> getUserProjects(@PathVariable Long user_id) {
-        Optional<Set<ResponseProjectDTO>> userProjectsDTO = userService.getUserProjects(user_id);
+        Set<ResponseProjectDTO> userProjectsDTO = userService.getUserProjects(user_id);
 
         return userProjectsDTO.map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
     }

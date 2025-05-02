@@ -20,14 +20,14 @@ public class TaskController {
 
     @GetMapping("/{taskId}")
     public ResponseEntity<ResponseTaskDTO> getTaskById(@PathVariable Long taskId) {
-        ResponseTaskDTO responseTaskDTO = taskService.getTaskById(taskId).orElse(null);
+        ResponseTaskDTO responseTaskDTO = taskService.getTaskById(taskId);
 
         return ResponseEntity.ok(responseTaskDTO);
     }
 
     @PostMapping
     public ResponseEntity<ResponseTaskDTO> createTask(@RequestBody RequestTaskDTO requestTaskDTO) {
-        ResponseTaskDTO responseTaskDTO = taskService.createTask(requestTaskDTO).orElse(null);
+        ResponseTaskDTO responseTaskDTO = taskService.createTask(requestTaskDTO);
 
         return ResponseEntity.ok(responseTaskDTO);
     }
@@ -35,14 +35,14 @@ public class TaskController {
 
     @PatchMapping("/{taskId}")
     public ResponseEntity<ResponseTaskDTO> updateTask(Long taskId, RequestTaskDTO requestTaskDTO) {
-        ResponseTaskDTO responseTaskDTO = taskService.updateTask(taskId, requestTaskDTO).orElse(null);
+        ResponseTaskDTO responseTaskDTO = taskService.updateTask(taskId, requestTaskDTO);
 
         return ResponseEntity.ok(responseTaskDTO);
     }
 
     @DeleteMapping("/{taskId}")
     public ResponseEntity<Set<ResponseTaskDTO>> deleteTask(@PathVariable Long taskId) {
-        Set<ResponseTaskDTO> responseTaskDTOS = taskService.deleteTask(taskId).orElse(null);
+        Set<ResponseTaskDTO> responseTaskDTOS = taskService.deleteTask(taskId);
 
         return ResponseEntity.ok(responseTaskDTOS);
     }
