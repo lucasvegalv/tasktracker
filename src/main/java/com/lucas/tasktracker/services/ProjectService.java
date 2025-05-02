@@ -9,6 +9,8 @@ import com.lucas.tasktracker.dtos.responses.ResponseUserDTO;
 import com.lucas.tasktracker.entities.ProjectEntity;
 import com.lucas.tasktracker.entities.TaskListEntity;
 import com.lucas.tasktracker.entities.UserEntity;
+import com.lucas.tasktracker.exceptions.BadArgumentExceptionType;
+import com.lucas.tasktracker.exceptions.NotFoundExceptionType;
 import com.lucas.tasktracker.mappers.ProjectMapper;
 import com.lucas.tasktracker.mappers.TaskListMapper;
 import com.lucas.tasktracker.mappers.UserMapper;
@@ -46,7 +48,10 @@ public class ProjectService {
     @Transactional
     public ResponseProjectDTO createProject(RequestProjectDTO requestProjectDTO) {
 
-        // Validar que el proyecto no exista. Si existe lanzamos un PROJECT_ALREADY_EXISTS
+        Optional<ProjectEntity> projectEntityOptional = projectRepository.findByTitle(requestProjectDTO.getTitle());
+        if (projectEntityOptional.isPresent()) {
+            throw BadArgumentExceptionType.PROJECT_ALREADY_EXISTS.getException();
+        }
 
 
         ProjectEntity projectEntity = projectMapper.toProjectEntity(requestProjectDTO);
@@ -58,14 +63,13 @@ public class ProjectService {
 
     // Eliminar un proyecto.
     @Transactional
-    public Optional<List<ResponseProjectDTO>> deleteProject(Long projectId) {
+    public List<ResponseProjectDTO> deleteProject(Long projectId) {
 
         // Validamos de que exista y asi poder eliminarlo. Si no existe lanzamos un PROJECT_NOT_FOUND
-
         Optional<ProjectEntity> projectEntityOptional = projectRepository.findById(projectId);
 
         if(projectEntityOptional.isEmpty()) {
-            return Optional.empty();
+            throw NotFoundExceptionType.PROJECT_NOT_FOUND.getException();
         }
 
 
@@ -85,45 +89,46 @@ public class ProjectService {
                 .map(projectMapper::toResponseProjectDTO)
                 .toList();
 
-        return Optional.of(projectsDTOList);
+        return projectsDTOList;
     }
 
     // Añadir un usuario como miembro a un proyecto.
     @Transactional
-    public Optional<Set<ResponseUserDTO>> addMemberToProject(Long projectId, AddMemberDTO addMemberDTO) {
-
-        // Validar que el proyecto exista. Si no existe lanzamos un PROJECT_NOT_FOUND
-
-        // Validar que el usuario exista. Si no existe lanzamos un USER_NOT_FOUND
-
-        // Validar de que el usuario no sea parte del proyecto. Si lo es, lanzamos un USER_ALREADY_MEMBER
+    public Set<ResponseUserDTO> addMemberToProject(Long projectId, AddMemberDTO addMemberDTO) {
 
         Optional<ProjectEntity> projectEntityOptional = projectRepository.findById(projectId);
         Optional<UserEntity> userEntityOptional = userRepository.findById(addMemberDTO.getMemberId());
-
-        if(userEntityOptional.isPresent() && projectEntityOptional.isPresent()) {
-            ProjectEntity projectEntity = projectEntityOptional.get();
-            UserEntity userEntity = userEntityOptional.get();
-
-            boolean alreadyMember = projectEntity.getMembers().contains(userEntity);
-            if(!alreadyMember) {
-                projectEntity.getMembers().add(userEntity);
-                userEntity.getProjects().add(projectEntity);
-
-                userRepository.save(userEntity);
-
-                Set<UserEntity> projectMembersEntityList = projectEntity.getMembers();
-                Set<ResponseUserDTO> projectMembersDTOList = projectMembersEntityList.stream()
-                        .map(userMapper::toResponseUserDTO)
-                        .collect(Collectors.toSet());
-
-                return Optional.of(projectMembersDTOList);
-            } else {
-                return Optional.empty();
-            }
+        // Validar que el proyecto exista. Si no existe lanzamos un PROJECT_NOT_FOUND
+        if(projectEntityOptional.isEmpty()) {
+            throw NotFoundExceptionType.PROJECT_NOT_FOUND.getException();
         }
 
-        return Optional.empty();
+        // Validar que el usuario exista. Si no existe lanzamos un USER_NOT_FOUND
+        if(userEntityOptional.isEmpty()) {
+            throw NotFoundExceptionType.USER_NOT_FOUND.getException();
+        }
+
+
+        // Validar de que el usuario no sea parte del proyecto. Si lo es, lanzamos un USER_ALREADY_MEMBER
+        ProjectEntity projectEntity = projectEntityOptional.get();
+        UserEntity userEntity = userEntityOptional.get();
+
+        boolean alreadyMember = projectEntity.getMembers().contains(userEntity);
+        if(!alreadyMember) {
+            throw BadArgumentExceptionType.USER_ALREADY_MEMBER.getException();
+        }
+
+        projectEntity.getMembers().add(userEntity);
+        userEntity.getProjects().add(projectEntity);
+
+        userRepository.save(userEntity);
+
+        Set<UserEntity> projectMembersEntityList = projectEntity.getMembers();
+        Set<ResponseUserDTO> projectMembersDTOList = projectMembersEntityList.stream()
+                .map(userMapper::toResponseUserDTO)
+                .collect(Collectors.toSet());
+
+        return projectMembersDTOList;
     }
 
 
@@ -143,22 +148,21 @@ public class ProjectService {
     public Optional<ResponseProjectDTO> getProjectById(Long projectId) {
 
         // Validar que el proyecto exista. Si no existe lanzamos un PROJECT_NOT_FOUND
-
         Optional<ProjectEntity> projectEntityOptional = projectRepository.findById(projectId);
 
-        if(projectEntityOptional.isPresent()) {
-            ProjectEntity projectEntity = projectEntityOptional.get();
-            ResponseProjectDTO projectDTO = projectMapper.toResponseProjectDTO(projectEntity);
-
-            return Optional.of(projectDTO);
+        if(projectEntityOptional.isEmpty()) {
+            throw NotFoundExceptionType.PROJECT_NOT_FOUND.getException();
         }
+
+        ProjectEntity projectEntity = projectEntityOptional.get();
+        ResponseProjectDTO projectDTO = projectMapper.toResponseProjectDTO(projectEntity);
 
         return Optional.empty();
     }
 
 
     // Actualizar un proyecto.
-    public Optional<ResponseProjectDTO> updateProject(Long projectId, RequestProjectDTO requestProjectDTO) {
+    public ResponseProjectDTO updateProject(Long projectId, RequestProjectDTO requestProjectDTO) {
 
         // Validar que el proyecto exista. Si no existe lanzamos un PROJECT_NOT_FOUND
 
@@ -166,38 +170,51 @@ public class ProjectService {
 
         Optional<ProjectEntity> projectEntityOptional = projectRepository.findById(projectId);
 
-        if(projectEntityOptional.isPresent()) {
-            ProjectEntity projectEntity = projectEntityOptional.get();
-
-            if(requestProjectDTO.getTitle() != null) {
-                projectEntity.setTitle(requestProjectDTO.getTitle());
-                projectRepository.save(projectEntity);
-
-                ResponseProjectDTO updatedProjectDTO = projectMapper.toResponseProjectDTO(projectEntity);
-
-                return Optional.of(updatedProjectDTO);
-            }
+        if(projectEntityOptional.isEmpty()) {
+            throw NotFoundExceptionType.PROJECT_NOT_FOUND.getException();
         }
-        return Optional.empty();
+
+        ProjectEntity projectEntity = projectEntityOptional.get();
+
+        Optional<ProjectEntity> projectEntityOptional2 = projectRepository.findByTitle(projectEntity.getTitle());
+
+        if(projectEntityOptional2.isPresent()) {
+            throw BadArgumentExceptionType.PROJECT_ALREADY_EXISTS.getException();
+        }
+
+        projectEntity.setTitle(requestProjectDTO.getTitle());
+        projectRepository.save(projectEntity);
+
+        ResponseProjectDTO updatedProjectDTO = projectMapper.toResponseProjectDTO(projectEntity);
+
+        return updatedProjectDTO;
+
     }
 
     // Quitar un usuario de un proyecto.
     @Transactional
-    public Optional<Set<ResponseUserDTO>> deleteProjectMember(Long projectId, Long memberId) {
-
-        // Validar que el proyecto exista. Si no existe lanzamos un PROJECT_NOT_FOUND
-
-        // Validar que el usuario exista. Si no existe lanzamos un USER_NOT_FOUND
-
+    public Set<ResponseUserDTO> deleteProjectMember(Long projectId, Long memberId) {
         Optional<ProjectEntity> projectEntityOptional = projectRepository.findById(projectId);
         Optional<UserEntity> memberEntityOptional = userRepository.findById(memberId);
 
-        if (projectEntityOptional.isEmpty() || memberEntityOptional.isEmpty()) {
-            return Optional.empty();
+        // Validar que el proyecto exista. Si no existe lanzamos un PROJECT_NOT_FOUND
+        if(projectEntityOptional.isEmpty()) {
+            throw NotFoundExceptionType.PROJECT_NOT_FOUND.getException();
+        }
+
+        // Validar que el usuario existao. Si no existe lanzamos un USER_NOT_FOUND
+        if(memberEntityOptional.isEmpty()) {
+            throw NotFoundExceptionType.USER_NOT_FOUND.getException();
         }
 
         ProjectEntity projectEntity = projectEntityOptional.get();
         Set<UserEntity> currentMembers = projectEntity.getMembers();
+
+        // Validar de qe el usario sea miembro del proyecto, sino lanzamos un USER_NOT_MEMBER
+        boolean isMember = currentMembers.contains(memberId);
+        if(!isMember) {
+            throw BadArgumentExceptionType.USER_NOT_MEMBER.getException();
+        }
 
         UserEntity memberToRemove = memberEntityOptional.get();
 
@@ -211,18 +228,16 @@ public class ProjectService {
                 .map(userMapper::toResponseUserDTO)
                 .collect(Collectors.toSet());
 
-        return Optional.of(updatedMembersDTO);
+        return updatedMembersDTO;
     }
 
     //  Listar los usuarios miembros de un proyecto.
-    public Optional<Set<ResponseUserDTO>> getProjectMembers(Long projectId) {
-
-        // Validar que el proyecto exista. Si no existe lanzamos un PROJECT_NOT_FOUND
+    public Set<ResponseUserDTO> getProjectMembers(Long projectId) {
 
         Optional<ProjectEntity> projectEntityOptional = projectRepository.findById(projectId);
-
+        // Validar que el proyecto exista. Si no existe lanzamos un PROJECT_NOT_FOUND
         if(projectEntityOptional.isEmpty()) {
-            return Optional.empty();
+            throw NotFoundExceptionType.PROJECT_NOT_FOUND.getException();
         }
 
         Set<UserEntity> projectMembersEntityList = projectEntityOptional.get().getMembers();
@@ -230,52 +245,53 @@ public class ProjectService {
                 .map(userMapper::toResponseUserDTO)
                 .collect(Collectors.toSet());
 
-        return Optional.of(projectMembersDTOList);
+        return projectMembersDTOList;
     }
 
     // Agregar una nueva lista de tareas dentro de un proyecto.
-    public Optional<ResponseProjectDTO> addTaskListToProject(Long projectId, AddTaskListDTO addTaskListId) {
-
-        // Validar que el proyecto exista. Si no existe lanzamos un PROJECT_NOT_FOUND
-
-        // Validar de que la lista de tareas exista. Si no existe, lanzamos un TASKLIST_NOT_FOUND
-
+    public ResponseProjectDTO addTaskListToProject(Long projectId, AddTaskListDTO addTaskListId) {
         Optional<ProjectEntity> projectEntityOptional = projectRepository.findById(projectId);
         Optional<TaskListEntity> taskListEntityOptional = taskListRepository.findById(addTaskListId.getTaskListId());
 
-        if(projectEntityOptional.isEmpty() || taskListEntityOptional.isEmpty()) {
-            return Optional.empty();
+        // Validar que el proyecto exista. Si no existe lanzamos un PROJECT_NOT_FOUND
+        if(projectEntityOptional.isEmpty()) {
+            throw NotFoundExceptionType.PROJECT_NOT_FOUND.getException();
+        }
+
+        // Validar de que la lista de tareas exista. Si no existe, lanzamos un TASKLIST_NOT_FOUND
+        if(taskListEntityOptional.isEmpty()) {
+            throw NotFoundExceptionType.TASKLIST_NOT_FOUND.getException();
         }
 
         ProjectEntity projectEntity = projectEntityOptional.get();
         TaskListEntity taskListEntity = taskListEntityOptional.get();
 
+        // Validamos de que la lista no sea parte del proyecto ya, sino lanzamos un PROJECT_ALREADY_HAS_TASKLIST
         boolean isACurrentTaskList = projectEntity.getTaskLists().contains(taskListEntity);
-
-        if(!isACurrentTaskList) {
-            taskListEntity.setProject(projectEntity);
-            projectEntity.getTaskLists().add(taskListEntity);
-
-            projectRepository.save(projectEntity);
-
-            ResponseProjectDTO responseProjectDTO = projectMapper.toResponseProjectDTO(projectEntity);
-            return Optional.of(responseProjectDTO);
+        if(isACurrentTaskList) {
+           throw BadArgumentExceptionType.PROJECT_ALREADY_EXISTS.getException();
         }
 
-        return Optional.empty();
+        taskListEntity.setProject(projectEntity);
+        projectEntity.getTaskLists().add(taskListEntity);
+
+        projectRepository.save(projectEntity);
+
+        ResponseProjectDTO responseProjectDTO = projectMapper.toResponseProjectDTO(projectEntity);
+        return responseProjectDTO;
     }
 
 
     // Listar las listas de tareas de un proyecto.
 
-    public Optional<Set<ResponseTaskListDTO>> getProjectTaskLists(Long projectId) {
+    public Set<ResponseTaskListDTO> getProjectTaskLists(Long projectId) {
 
         // Validar que el proyecto exista. Si no existe lanzamos un PROJECT_NOT_FOUND
 
         Optional<ProjectEntity> projectEntityOptional = projectRepository.findById(projectId);
 
         if(projectEntityOptional.isEmpty()) {
-            Optional.empty();
+            throw NotFoundExceptionType.PROJECT_NOT_FOUND.getException();
         }
 
         ProjectEntity projectEntity = projectEntityOptional.get();
@@ -285,7 +301,7 @@ public class ProjectService {
                 .map(taskListMapper::toResponseTaskListDTO)
                 .collect(Collectors.toSet());
 
-        return Optional.of(projectResponseTaskListDTO);
+        return projectResponseTaskListDTO;
     }
 
 }

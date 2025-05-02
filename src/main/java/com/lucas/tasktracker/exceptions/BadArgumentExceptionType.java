@@ -17,7 +17,9 @@ public enum BadArgumentExceptionType {
     UNAUTHORIZED_OPERATION("UNAUTHORIZED_OPERATION", "You are not allowed to perform this operation."),
     PROJECT_ALREADY_EXISTS("PROJECT_ALREADY_EXISTS", "A project with the same name already exists."),
     TASK_ALREADY_COMPLETED("TASK_ALREADY_COMPLETED", "This task is already marked as completed."),
-    USER_ALREADY_MEMBER("USER_ALREADY_MEMBER", "This user is already marked as member.");
+    USER_ALREADY_MEMBER("USER_ALREADY_MEMBER", "This user is already marked as member."),
+    USER_NOT_MEMBER("USER_NOT_MEMBER", "This user is not a member of this project."),
+    PROJECT_ALREADY_HAS_TASKLIST("PROJECT_ALREADY_HAS_TASKLIST", "This tasklist is already marked as part of the project.");
 
     private final String code;
     private final String message;

@@ -23,7 +23,7 @@ public class GlobalHandlerException {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorMessage);
     }
 
-    @ExceptionHandler(BadRequestException.class)
+    @ExceptionHandler(BadArgumentException.class)
     public ResponseEntity<ErrorMessage> handleBadArgument(BadArgumentException ex) {
         String message = ex.getMessage();
         String code = ex.getCode();
