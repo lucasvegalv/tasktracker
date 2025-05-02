@@ -6,6 +6,7 @@ import com.lucas.tasktracker.dtos.responses.ResponseTaskDTO;
 import com.lucas.tasktracker.dtos.responses.ResponseTaskListDTO;
 import com.lucas.tasktracker.dtos.responses.ResponseUserDTO;
 import com.lucas.tasktracker.services.TaskListService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -51,7 +52,7 @@ public class TaskListController {
 
 //    POST /api/tasklists: Crear una lista de tareas sin proyecto asignado
     @PostMapping
-    public ResponseEntity<ResponseTaskListDTO> createTaskList(RequestTaskListDTO requestTaskListDTO) {
+    public ResponseEntity<ResponseTaskListDTO> createTaskList(@RequestBody @Valid RequestTaskListDTO requestTaskListDTO) {
         ResponseTaskListDTO responseTaskListDTO = taskListService.createTaskList(requestTaskListDTO);
 
         return ResponseEntity.ok(responseTaskListDTO);
@@ -60,7 +61,7 @@ public class TaskListController {
 
 //    PUT /api/tasklists/{taskListId}: Actualizar una lista de tareas.
     @PatchMapping("/{tasklistId}")
-    public ResponseEntity<ResponseTaskListDTO> updateTaskList(@PathVariable Long tasklistId, @RequestBody RequestTaskListDTO requestTaskListDTO) {
+    public ResponseEntity<ResponseTaskListDTO> updateTaskList(@PathVariable Long tasklistId, @RequestBody @Valid RequestTaskListDTO requestTaskListDTO) {
         ResponseTaskListDTO responseTaskListDTO = taskListService.updateTaskList(tasklistId, requestTaskListDTO);
 
         return ResponseEntity.ok(responseTaskListDTO);
@@ -70,7 +71,7 @@ public class TaskListController {
 
 //    POST /api/tasklists/{taskListId}/tasks: Agregar una tarea a una lista de tareas
     @PostMapping("/{tasklistId}/tasks")
-    public ResponseEntity<Set<ResponseTaskDTO>> addTaskToTaskList(@PathVariable Long tasklistId, @RequestBody AddTaskDTO addTaskDTO) {
+    public ResponseEntity<Set<ResponseTaskDTO>> addTaskToTaskList(@PathVariable Long tasklistId, @RequestBody @Valid AddTaskDTO addTaskDTO) {
         Set<ResponseTaskDTO> taskListTasks = taskListService.addTaskToTaskList(tasklistId, addTaskDTO);
 
         return ResponseEntity.ok(taskListTasks);

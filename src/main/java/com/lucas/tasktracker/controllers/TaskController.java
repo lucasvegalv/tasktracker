@@ -3,6 +3,7 @@ package com.lucas.tasktracker.controllers;
 import com.lucas.tasktracker.dtos.requests.RequestTaskDTO;
 import com.lucas.tasktracker.dtos.responses.ResponseTaskDTO;
 import com.lucas.tasktracker.services.TaskService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,7 +27,7 @@ public class TaskController {
     }
 
     @PostMapping
-    public ResponseEntity<ResponseTaskDTO> createTask(@RequestBody RequestTaskDTO requestTaskDTO) {
+    public ResponseEntity<ResponseTaskDTO> createTask(@RequestBody @Valid RequestTaskDTO requestTaskDTO) {
         ResponseTaskDTO responseTaskDTO = taskService.createTask(requestTaskDTO);
 
         return ResponseEntity.ok(responseTaskDTO);
@@ -34,7 +35,7 @@ public class TaskController {
 
 
     @PatchMapping("/{taskId}")
-    public ResponseEntity<ResponseTaskDTO> updateTask(Long taskId, RequestTaskDTO requestTaskDTO) {
+    public ResponseEntity<ResponseTaskDTO> updateTask(Long taskId, @RequestBody @Valid RequestTaskDTO requestTaskDTO) {
         ResponseTaskDTO responseTaskDTO = taskService.updateTask(taskId, requestTaskDTO);
 
         return ResponseEntity.ok(responseTaskDTO);

@@ -8,6 +8,7 @@ import com.lucas.tasktracker.dtos.responses.ResponseTaskListDTO;
 import com.lucas.tasktracker.dtos.responses.ResponseUserDTO;
 import com.lucas.tasktracker.repositories.ProjectRepository;
 import com.lucas.tasktracker.services.ProjectService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,7 +37,7 @@ public class ProjectController {
 
     // Crear un nuevo proyecto.
     @PostMapping
-    public ResponseEntity<ResponseProjectDTO> createProject(@RequestBody RequestProjectDTO requestProjectDTO) {
+    public ResponseEntity<ResponseProjectDTO> createProject(@RequestBody @Valid RequestProjectDTO requestProjectDTO) {
         ResponseProjectDTO newProjectDTO = projectService.createProject(requestProjectDTO);
 
         return ResponseEntity.ok(newProjectDTO);
@@ -60,7 +61,7 @@ public class ProjectController {
 
     // Actualizar un proyecto.
     @PatchMapping("/{projectId}")
-    public ResponseEntity<ResponseProjectDTO> updateProject(@PathVariable Long projectId, @RequestBody RequestProjectDTO requestProjectDTO) {
+    public ResponseEntity<ResponseProjectDTO> updateProject(@PathVariable Long projectId, @RequestBody @Valid RequestProjectDTO requestProjectDTO) {
         ResponseProjectDTO responseProjectDTOList = projectService.updateProject(projectId, requestProjectDTO);
 
         return ResponseEntity.ok(responseProjectDTOList);
@@ -93,7 +94,7 @@ public class ProjectController {
 
     // Agregar una nueva lista de tareas dentro de un proyecto.
     @PostMapping("/{projectId}/tasklists")
-    public ResponseEntity<ResponseProjectDTO> addTaskListToProject(@PathVariable Long projectId, @RequestBody AddTaskListDTO addTaskListDTO) {
+    public ResponseEntity<ResponseProjectDTO> addTaskListToProject(@PathVariable Long projectId, @RequestBody @Valid AddTaskListDTO addTaskListDTO) {
         ResponseProjectDTO responseProjectDTO = projectService.addTaskListToProject(projectId, addTaskListDTO);
 
         return ResponseEntity.ok(responseProjectDTO);
