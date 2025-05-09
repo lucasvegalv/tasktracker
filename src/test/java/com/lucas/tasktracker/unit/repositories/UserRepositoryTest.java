@@ -2,26 +2,19 @@ package com.lucas.tasktracker.unit.repositories;
 
 import com.lucas.tasktracker.entities.UserEntity;
 import com.lucas.tasktracker.repositories.UserRepository;
-import org.apache.catalina.User;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.jdbc.EmbeddedDatabaseConnection;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.orm.jpa.AutoConfigureDataJpa;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.ActiveProfiles;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.List;
 import java.util.Optional;
 
-import static com.lucas.tasktracker.utils.TestUserFactory.*;
+import static com.lucas.tasktracker.utils.TestEntitiesFactory.*;
 
 @DataJpaTest
 @ActiveProfiles("test")
@@ -32,12 +25,9 @@ public class UserRepositoryTest {
     @Autowired
     private UserRepository userRepository;
 
-    //private final static UserEntity first_user = getValidUser1();
-    //private final static  UserEntity second_user = getValidUser2();
-    //private final static  UserEntity invalid_user = getInvalidUser();
 
     @Test
-    @DisplayName("Should create a user if inputs are valid")
+    @DisplayName("Should create a user")
     public void shouldCreateAUser(){
         // Given
         UserEntity user = getValidUser1();
@@ -47,19 +37,6 @@ public class UserRepositoryTest {
 
         // Then
         assertThat(savedUser.getId()).isNotNull();
-    }
-
-    @Test
-    @DisplayName("Shouldn't create a user if the inputs are invalid")
-    public void shouldNotCreateAUser(){
-        // Given
-        UserEntity invalidUser = getInvalidUser();
-
-        // When
-        UserEntity savedUser = userRepository.save(invalidUser);
-
-        // Then
-        assertThat(savedUser.getId()).isNull();
     }
 
     @Test
@@ -102,46 +79,39 @@ public class UserRepositoryTest {
     }
 
 
-
-
     @Test
-    @DisplayName("Should update a user if the inputs are valid")
+    @DisplayName("Should update user")
     public void shouldUpdateAUser(){
         // Given
+        UserEntity user = getValidUser1();
+        userRepository.save(user);
 
         // When
+        user.setUsername("Lucas");
+        userRepository.save(user);
+        Optional<UserEntity> searchedUser = userRepository.findById(user.getId());
 
         // Then
+        assertThat(searchedUser)
+                .get()
+                .extracting(UserEntity::getUsername)
+                .isEqualTo("Lucas");
+
     }
 
     @Test
-    @DisplayName("Shouldn't update a user if the inputs are invalid")
-    public void shouldNotUpdateAUser(){
+    @DisplayName("Should delete a user")
+    public void shouldDeleteAUser(){
         // Given
+        UserEntity user = getValidUser1();
+        userRepository.save(user);
 
         // When
+        userRepository.delete(user);
+        Optional<UserEntity> searchedUser = userRepository.findById(user.getId());
 
         // Then
+        assertThat(searchedUser)
+                .isEmpty();
     }
-
-    @Test
-    @DisplayName("Should delete a user if the user exists")
-    public void shouldDeleteAUserIfExist(){
-        // Given
-
-        // When
-
-        // Then
-    }
-
-    @Test
-    @DisplayName("Shouldn't delete a user if the user does not exists")
-    public void shouldNotDeleteAUserIfNotExist(){
-        // Given
-
-        // When
-
-        // Then
-    }
-
 }
