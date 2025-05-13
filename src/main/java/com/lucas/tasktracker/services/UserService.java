@@ -39,12 +39,9 @@ public class UserService {
         UserEntity userEntity = userMapper.toUserEntity(requestUserDTO);
         UserEntity savedUserEntity =  userRepository.save(userEntity);
 
-        System.out.println(savedUserEntity.toString());
-        System.out.println("---------------------");
-
         ResponseUserDTO responseUserDTO = userMapper.toResponseUserDTO(savedUserEntity);
         System.out.println(responseUserDTO.toString());
-        System.out.println("---------------------");
+
 
         return responseUserDTO;
     }
@@ -75,7 +72,7 @@ public class UserService {
     public ResponseUserDTO updateUser(Long id, RequestUserDTO userDTO) {
         Optional<UserEntity> userEntityOptional = userRepository.findById(id);
 
-        if(!userEntityOptional.isEmpty()) {
+        if(userEntityOptional.isEmpty()) {
             throw NotFoundExceptionType.USER_NOT_FOUND.getException();
         }
 
@@ -106,7 +103,7 @@ public class UserService {
     public List<ResponseUserDTO> deleteUser(Long user_id) {
         Optional<UserEntity> userEntityOptional = userRepository.findById(user_id);
 
-        if(!userEntityOptional.isEmpty()) {
+        if(userEntityOptional.isEmpty()) {
             throw NotFoundExceptionType.USER_NOT_FOUND.getException();
         }
 

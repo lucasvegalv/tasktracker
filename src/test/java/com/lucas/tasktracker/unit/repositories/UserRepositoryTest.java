@@ -65,10 +65,10 @@ public class UserRepositoryTest {
         UserEntity user1 = getValidUser1();
         UserEntity user2 = getValidUser2();
 
-        // When
         userRepository.save(user1);
         userRepository.save(user2);
 
+        // When
         List<UserEntity> users = userRepository.findAll();
 
         // Then
