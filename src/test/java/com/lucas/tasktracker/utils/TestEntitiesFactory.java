@@ -1,5 +1,6 @@
 package com.lucas.tasktracker.utils;
 
+import com.lucas.tasktracker.entities.TaskEntity;
 import com.lucas.tasktracker.entities.TaskListEntity;
 import com.lucas.tasktracker.entities.UserEntity;
 import com.lucas.tasktracker.enumerations.JobsEnum;
@@ -59,5 +60,22 @@ public class TestEntitiesFactory {
         return taskListEntity;
     }
 
+
+    // TASK
+    public static TaskEntity getValidTask1() {
+        TaskEntity taskEntity = TaskEntity.builder()
+                .title("Primer Tarea")
+                .build();
+
+        return taskEntity;
+    }
+
+    public static TaskEntity getValidTask2() {
+        TaskEntity taskEntity = TaskEntity.builder()
+                .title("Segunda Tarea")
+                .build();
+
+        return taskEntity;
+    }
 
 }

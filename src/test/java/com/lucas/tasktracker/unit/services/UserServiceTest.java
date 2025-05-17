@@ -1,14 +1,16 @@
 package com.lucas.tasktracker.unit.services;
 
 import com.lucas.tasktracker.dtos.requests.RequestUserDTO;
+import com.lucas.tasktracker.dtos.responses.ResponseProjectDTO;
 import com.lucas.tasktracker.dtos.responses.ResponseUserDTO;
+import com.lucas.tasktracker.entities.ProjectEntity;
 import com.lucas.tasktracker.entities.UserEntity;
 import com.lucas.tasktracker.enumerations.JobsEnum;
 import com.lucas.tasktracker.exceptions.NotFoundException;
+import com.lucas.tasktracker.mappers.ProjectMapper;
 import com.lucas.tasktracker.mappers.UserMapper;
 import com.lucas.tasktracker.repositories.UserRepository;
 import com.lucas.tasktracker.services.UserService;
-import org.apache.catalina.User;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,21 +20,30 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.lucas.tasktracker.utils.TestEntitiesFactory.getValidUser1;
 import static com.lucas.tasktracker.utils.TestEntitiesFactory.getValidUser2;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.tuple;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class UserServiceTest {
+
+    Logger logger = LoggerFactory.getLogger(UserServiceTest.class.getName());
+
     @Mock
     UserRepository userRepository;
 
     @Mock
     UserMapper userMapper;
+
+    @Mock
+    ProjectMapper projectMapper;
 
     @InjectMocks
     UserService userService;
@@ -49,6 +60,7 @@ public class UserServiceTest {
                 .lastname("Gates")
                 .job(JobsEnum.SOFTWARE_ENGINEER)
                 .build();
+        logger.info("User created -> {}", requestUserDTO.getUsername());
 
         ResponseUserDTO expectedResponse = ResponseUserDTO.builder()
                         .username("Elon")
@@ -66,6 +78,9 @@ public class UserServiceTest {
 
         // When
         ResponseUserDTO createdUser = userService.createUser(requestUserDTO);
+        logger.warn("Tryng another WARN log");
+        logger.warn("Another one!");
+        logger.trace("Finally an error log");
 
         // Then
         assertThat(createdUser)
@@ -229,27 +244,90 @@ public class UserServiceTest {
         // Given
         UserEntity user = getValidUser1();
         user.setId(1L);
-        ResponseUserDTO responseUserDTO = ResponseUserDTO.builder().username("Elon").lastname("Gates").job(JobsEnum.SOFTWARE_ENGINEER).build();
+
+        UserEntity remainingUser = getValidUser2();
+        List<UserEntity> remainingUsers = List.of(remainingUser);
+
+        ResponseUserDTO expectedResponse = ResponseUserDTO.builder()
+                .username("Javier")
+                .lastname("Messi")
+                .job(JobsEnum.DESIGNER)
+                .build();
+
+        List<ResponseUserDTO> responseUserDTOList = List.of(expectedResponse);
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
         doNothing().when(userRepository).deleteById(1L);
-        when(userRepository.findAll()).thenReturn(List.of(user));
-        when(userMapper.toResponseUserDTOList(List.of(user))).thenReturn(List.of());
+        when(userRepository.findAll()).thenReturn(remainingUsers);
+        when(userMapper.toResponseUserDTOList(remainingUsers)).thenReturn(responseUserDTOList);
 
         // When
-        List<ResponseUserDTO> expectedUsersResponse = userService.deleteUser(savedUser.getId());
+        List<ResponseUserDTO> responseUserDTOs = userService.deleteUser(1L);
 
         // Then
-        assertThat(expectedUsersResponse)
-                .isEmpty();
+        assertThat(responseUserDTOs)
+                .hasSize(1)
+                .extracting(ResponseUserDTO::getUsername, ResponseUserDTO::getLastname, ResponseUserDTO::getJob)
+                .containsExactly(tuple("Javier", "Messi", JobsEnum.DESIGNER));
+
+        verify(userRepository).deleteById(1L);
     }
 
         // Escenario 2: Intentamos eliminar a un usuario que no existe y lanza NotFoundExceptionType.USER_NOT_FOUND
+    @Test
+    @DisplayName("Should throw a NotFoundException if the user to be deleted does not exists")
+    public void shouldThrowUserNotFoundExceptionIfUserToDeleteDoesNotExist() {
+        Long userId = 50L;
 
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+        assertThrows(NotFoundException.class, () -> userService.deleteUser(userId));
+    }
 
     // 6. Get User Projects Test
         // Escenario 1: Buscamos los proyectos de un usuario existente y los devuelve
+    @Test
+    @DisplayName("Should return all the projects of an existing user")
+    public void shouldReturnAllProjectsOfExistingUser() {
+        // Given
+        ProjectEntity projectEntity = ProjectEntity.builder()
+                .id(1L)
+                .title("Test Project")
+                .build();
+
+        Long userId = 1L;
+        UserEntity user = getValidUser1();
+        user.setId(userId);
+        user.setProjects(Set.of(projectEntity));
+
+
+        ResponseProjectDTO responseProjectDTO = ResponseProjectDTO.builder()
+                .projectId(1L)
+                .title("Test Project")
+                .build();
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(projectMapper.toResponseProjectDTO(projectEntity)).thenReturn(responseProjectDTO);
+
+        // When
+        Set<ResponseProjectDTO> responseProjectDTOS = userService.getUserProjects(userId);
+
+        // Then
+        assertThat(responseProjectDTOS)
+                .hasSize(1)
+                .extracting(ResponseProjectDTO::getProjectId, ResponseProjectDTO::getTitle)
+                .containsExactly(tuple(1L, "Test Project"));
+    }
+
 
         // Escenario 2: Buscamos los proyectos de un usuario inexistente y lanza NotFoundExceptionType.USER_NOT_FOUND
+    @Test
+    @DisplayName("Should throw a NotFoundException if the user owner of the projects does not exists")
+    public void shouldThrowUserNotFoundExceptionIfUserOwnerDoesNotExist() {
+        Long userId = 50L;
 
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+        assertThrows(NotFoundException.class, () -> userService.deleteUser(userId));
+    }
 }

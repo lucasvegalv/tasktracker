@@ -3,6 +3,7 @@ package com.lucas.tasktracker.dtos.responses;
 import com.lucas.tasktracker.enumerations.PriorityEnum;
 import com.lucas.tasktracker.enumerations.TaskStatusEnum;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.util.Date;
@@ -10,6 +11,7 @@ import java.util.Date;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class ResponseTaskDTO {
 
     private Long taskId;
